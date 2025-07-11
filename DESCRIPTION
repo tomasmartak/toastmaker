@@ -1,0 +1,10 @@
+Package: toastmaker
+Title: A private project setup toolbox with various useful helper scripts.
+Version: 0.0.0.1
+Authors@R: 
+    person("Tomáš", "Marťák", , "tomas.martak@gmail.com", role = c("aut", "cre"))
+Description: A private project setup toolbox with various useful helper scripts.
+License: use_gpl3_license()
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
