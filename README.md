@@ -18,19 +18,19 @@ remotes::install_local("path/to/toastmaker")
 ``` r
 library(toastmaker)
 
-project_setup(lab = "AC", project = "Initial_KOs",
-              experiment_name = "2025-04-28_growth-countess",
+project_setup(lab = "ABC", project = "Proj1",
+              experiment_name = "2026-09-30_exp1",
               raw_subdir = "FC", analysis_subdir = "FlowJo")
 ```
 
 This creates (existing folders are left alone):
 
 ```         
-~/Documents/heiBOX/GRK2727/AC/Projects/Initial_KOs/
-├── analysis/FlowJo/2025-04-28_growth-countess/
-├── raw/FC/2025-04-28_growth-countess/
-├── img/2025-04-28_growth-countess/
-├── doc/2025-04-28_growth-countess/
+~/Documents/heiBOX/GRK2727/ABC/Projects/Proj1/
+├── analysis/FlowJo/2026-09-30_exp1/
+├── raw/FC/2026-09-30_exp1/
+├── img/2026-09-30_exp1/
+├── doc/2026-09-30_exp1/
 └── scripts/
 ```
 
@@ -55,20 +55,6 @@ crumber()                               # remove everything else
 crumber(consume.cookie = fit)           # stop protecting `fit`
 crumber(notify = TRUE)                  # beep when done (needs `beepr`)
 ```
-
-## Configuration
-
-Set defaults in your `~/.Rprofile` (open it with `usethis::edit_r_profile()`):
-
-``` r
-options(
-    toastmaker.root      = "/run/media/me/My SSD",  # folder containing home_base
-    toastmaker.home_base = "heiBOX",
-    toastmaker.grant     = "GRK2727"
-)
-```
-
-Any of `home_base`, `grant` or `lab` can be set to `NULL` to leave that level out of the path.
 
 ## Development
 
