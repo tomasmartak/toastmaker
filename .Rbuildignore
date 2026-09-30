@@ -1,2 +1,5 @@
 ^toastmaker\.Rproj$
 ^\.Rproj\.user$
+^LICENSE\.md$
+^README\.md$
+^\.Rhistory$
