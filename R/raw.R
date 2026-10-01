@@ -142,35 +142,38 @@ data_verify <- function(dir) {
       "")
 }
 
-# Offer a README for a raw experiment folder, and a checksum manifest once it
-# holds data. Declined offers are not repeated in the same session.
-.tm_check_raw <- function(cc, project, experiment_name, raw_subdir, lab) {
+# Offer a README for a raw experiment folder. Declined offers are not
+# repeated in the same session.
+.tm_offer_raw_readme <- function(cc, project, experiment_name, raw_subdir, lab) {
     d <- cc$dir_raw
     readme <- file.path(d, "README.md")
-    manifest <- file.path(d, .tm_manifest_name)
+    key <- paste0("readme:", d)
+    if (file.exists(readme) || key %in% .tm_state$declined) return(invisible(NULL))
     ask <- .tm_interactive()
-
-    if (!file.exists(readme) && !(paste0("readme:", d) %in% .tm_state$declined)) {
-        if (ask && .tm_yes(paste0("No README.md in ", d, ". Create one from the template?"))) {
-            writeLines(.tm_raw_readme(cc, project, experiment_name, raw_subdir, lab), readme)
-            .tm_say("  + README.md written; please fill it in: ", readme, style = "32")
-        } else {
-            if (!ask) .tm_say("Note: ", d, " has no README.md describing the data.", style = "3")
-            .tm_state$declined <- c(.tm_state$declined, paste0("readme:", d))
-        }
+    if (ask && .tm_yes(paste0("No README.md in ", d, ". Create one from the template?"))) {
+        writeLines(.tm_raw_readme(cc, project, experiment_name, raw_subdir, lab), readme)
+        .tm_say("  + README.md written; please fill it in: ", readme, style = "32")
+    } else {
+        if (!ask) .tm_say("Note: ", d, " has no README.md describing the data.", style = "3")
+        .tm_state$declined <- c(.tm_state$declined, key)
     }
+    invisible(NULL)
+}
 
-    if (length(.tm_data_files(d)) > 0L && !file.exists(manifest) &&
-        !(paste0("manifest:", d) %in% .tm_state$declined)) {
-        if (ask && .tm_yes(paste0(d, " holds ", length(.tm_data_files(d)),
-                                  " file(s) but no checksum manifest. Create one?"),
-                           default = FALSE)) {
-            data_manifest(d)
-        } else {
-            if (!ask) .tm_say("Note: ", d, " has no checksum manifest (see data_manifest()).",
-                              style = "3")
-            .tm_state$declined <- c(.tm_state$declined, paste0("manifest:", d))
-        }
+# Offer a checksum manifest once `d` holds data.
+.tm_offer_manifest <- function(d) {
+    key <- paste0("manifest:", d)
+    n <- length(.tm_data_files(d))
+    if (n == 0L || file.exists(file.path(d, .tm_manifest_name)) ||
+        key %in% .tm_state$declined) return(invisible(NULL))
+    ask <- .tm_interactive()
+    if (ask && .tm_yes(paste0(d, " holds ", n, " file(s) but no checksum manifest. ",
+                              "Create one?"), default = FALSE)) {
+        data_manifest(d)
+    } else {
+        if (!ask) .tm_say("Note: ", d, " has no checksum manifest (see data_manifest()).",
+                          style = "3")
+        .tm_state$declined <- c(.tm_state$declined, key)
     }
     invisible(NULL)
 }

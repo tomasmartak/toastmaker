@@ -12,7 +12,8 @@
 #' | `"poster"`       | `Posters`       | `poster/`, `abstract/`, `figures/`, `scripts/` |
 #'
 #' Papers, presentations and posters also get a `README.md` explaining what
-#' goes in each subfolder. Every folder gets a `.toastmaker` marker file at
+#' goes in each subfolder; add figure folders to them with [figure_setup()].
+#' Shared or public data lives in `Datasets/` (see [dataset_setup()]). Every folder gets a `.toastmaker` marker file at
 #' its root (see [project_root()]).
 #'
 #' Before creating anything new, the tree is printed with new folders marked,
@@ -40,6 +41,10 @@
 #' @param analysis_subdir,raw_subdir,img_subdir Optional intermediate folders
 #'   (e.g. `"FlowJo"`, `"FC"`, `"cytotoxicity_assays"`), inserted before
 #'   `experiment_name` (projects only).
+#' @param datasets Names of datasets this folder uses, e.g. `"GEO_GSE12345"`
+#'   or `"public/GEO_GSE12345"` (see [dataset_setup()]). Their paths are
+#'   returned in `$datasets`, and the link is recorded in both folders'
+#'   `.toastmaker` markers.
 #' @param lab Lab folder, e.g. `"AC"`.
 #' @param grant Grant or grouping folder.
 #' @param home_base Base folder inside `root`, e.g. a synced cloud folder.
@@ -54,9 +59,10 @@
 #'   calling environment.
 #'
 #' @return Invisibly, a named list of class `"cookiecutter"` with `bd` (the
-#'   folder root) and one `dir_*` element per subfolder, or `NULL` if you
-#'   declined to create it. Its `type` attribute holds the layout.
-#' @seealso [toastmaker_setup()], [project_cleanup()], [project_snapshot()],
+#'   folder root), one `dir_*` element per subfolder and, if requested,
+#'   `datasets`; or `NULL` if you declined to create it. Its `type` attribute holds the layout.
+#' @seealso [toastmaker_setup()], [dataset_setup()], [figure_setup()],
+#'   [project_record()], [project_cleanup()], [project_snapshot()],
 #'   [project_root()], [crumber()]
 #' @export
 #' @examples
@@ -78,6 +84,7 @@ project_setup <- function(project,
                           analysis_subdir = NULL,
                           raw_subdir      = NULL,
                           img_subdir      = NULL,
+                          datasets        = NULL,
                           lab             = .tm_setting("lab"),
                           grant           = .tm_setting("grant"),
                           home_base       = .tm_setting("home_base"),
@@ -86,107 +93,29 @@ project_setup <- function(project,
                           check_raw       = TRUE,
                           auto_cleanup    = TRUE,
                           assign_global   = TRUE) {
-    if (missing(project)) {
-        bd <- .tm_find_marker(".")
-        if (is.null(bd)) {
-            stop("'project' is required, e.g. project_setup(\"MyProject\"), ",
-                 "unless the working directory is inside an existing project.",
-                 call. = FALSE)
-        }
-        marker <- .tm_read_marker(bd)
-        if (!is.null(type) && !identical(type, marker$Type)) {
-            stop("The folder ", bd, " is a '", marker$Type, "', not a '", type, "'.",
-                 call. = FALSE)
-        }
-        type <- marker$Type
-        project <- marker$Name %||% basename(bd)
-    } else {
-        if (!is.character(project) || length(project) != 1L || !nzchar(project)) {
-            stop("'project' must be a single non-empty string.", call. = FALSE)
-        }
-        type <- .tm_check_type(type %||% .tm_setting("type"))
-        home_base <- .tm_require_home_base(home_base)
-        bd <- .tm_path(path.expand(root), home_base, grant, lab,
-                       .tm_layouts[[type]]$top, project)
+    if (!is.null(type)) {
+        type <- .tm_check_type(type)
+    } else if (!missing(project)) {
+        type <- .tm_check_type(.tm_setting("type"))
     }
-
-    proj_args <- list(experiment_name = experiment_name, analysis_subdir = analysis_subdir,
-                      raw_subdir = raw_subdir, img_subdir = img_subdir)
-    if (!identical(type, "project")) {
-        given <- names(Filter(Negate(is.null), proj_args))
-        if (length(given) > 0L) {
-            stop(paste(given, collapse = ", "), " can only be used with type = \"project\".",
-                 call. = FALSE)
-        }
-    }
-    if (!is.null(experiment_name) &&
-        !grepl("^[0-9]{4}-[0-9]{2}-[0-9]{2}", experiment_name)) {
-        warning("experiment_name \"", experiment_name, "\" does not start with a date ",
-                "(YYYY-MM-DD, e.g. \"", format(Sys.Date()), "_", experiment_name, "\").",
-                call. = FALSE)
-    }
-
-    cc <- structure(c(list(bd = bd), .tm_layouts[[type]]$dirs(bd, proj_args)),
-                    class = "cookiecutter", type = type)
-    dirs <- unlist(unclass(cc)[-1L])
-
-    # Show what will be created and, if asked to, wait for confirmation.
-    bd_new <- !dir.exists(bd)
-    if (any(!dir.exists(dirs))) {
-        .tm_say("Setting up ", type, " folder:", style = "32")
-        for (l in .tm_tree(bd, dirs)) {
-            .tm_say("  ", l, style = if (endsWith(l, "(new)")) "32" else "90")
-        }
-        if (isTRUE(confirm) && !.tm_yes("Create the folders marked (new)?")) {
-            .tm_say("Nothing was created.", style = "33")
-            return(invisible(NULL))
-        }
-    } else {
-        .tm_say("Using ", type, " folder ", bd, style = "90")
-    }
-
-    # Record every directory (including parents) this call creates, so that
-    # cleanup only ever touches what we made.
-    created <- character(0L)
-    for (d in dirs) {
-        created <- union(created, .tm_missing_ancestors(d))
-        dir.create(d, recursive = TRUE, showWarnings = FALSE)
-    }
-
-    .tm_write_marker(bd, type, project, lab = lab, grant = grant, new = bd_new)
-    guide <- file.path(bd, "README.md")
-    if (!is.null(.tm_layouts[[type]]$guide) && !file.exists(guide)) {
-        writeLines(.tm_guide_text(type, project), guide)
-    }
-    if (identical(type, "project") && !is.null(experiment_name) && isTRUE(check_raw)) {
-        .tm_check_raw(cc, project, experiment_name, raw_subdir, .tm_read_marker(bd)$Lab)
-    }
-
-    if (isTRUE(assign_global)) {
-        env <- parent.frame()
-        list2env(unclass(cc), envir = env)
-        assign("dir_list", cc, envir = env)
-        protected <- c(names(cc), "dir_list", "core_objects")
-        if (exists("core_objects", envir = env, inherits = FALSE)) {
-            protected <- union(get("core_objects", envir = env), protected)
-        }
-        assign("core_objects", protected, envir = env)
-    }
-
-    if (isTRUE(auto_cleanup) && length(created) > 0L) {
-        .tm_state$dirs <- union(.tm_state$dirs, created)
-        .tm_register_exit_hook()
-        .tm_say("Empty new directories will be removed when R exits; ",
-                "run project_cleanup() to do it now.", style = "3")
-    }
-
-    invisible(cc)
+    .tm_setup(type = type,
+              name = if (missing(project)) NULL else project,
+              args = list(experiment_name = experiment_name,
+                          analysis_subdir = analysis_subdir,
+                          raw_subdir = raw_subdir, img_subdir = img_subdir),
+              datasets = datasets, lab = lab, grant = grant, home_base = home_base,
+              root = root, confirm = confirm, check_raw = check_raw,
+              auto_cleanup = auto_cleanup, assign_global = assign_global,
+              env = parent.frame())
 }
 
 #' @export
 print.cookiecutter <- function(x, ...) {
     cat("<cookiecutter ", attr(x, "type") %||% "project", ">\n", sep = "")
-    for (nm in names(x)) cat(sprintf("  %-12s %s\n", nm, x[[nm]]))
+    for (nm in setdiff(names(x), "datasets")) cat(sprintf("  %-12s %s\n", nm, x[[nm]]))
+    for (nm in names(x$datasets)) {
+        cat(sprintf("  %-12s %s\n", paste0("datasets$", nm), x$datasets[[nm]]))
+    }
     invisible(x)
 }
 
@@ -217,7 +146,7 @@ project_cleanup <- function(dirs = NULL, verbose = TRUE) {
     if (inherits(dirs, "cookiecutter")) {
         # Leaf directories plus their parents below the project root.
         bd <- dirs$bd
-        dirs <- unlist(lapply(unlist(unclass(dirs)[-1L]), .tm_below, bd = bd))
+        dirs <- unlist(lapply(.tm_dirs(dirs), .tm_below, bd = bd))
     }
     if (length(dirs) == 0L) {
         if (verbose) message("project_cleanup(): nothing to clean.")
@@ -267,7 +196,7 @@ project_snapshot <- function(cc = NULL) {
              call. = FALSE)
     }
 
-    dirs <- unlist(unclass(cc)[-1L])
+    dirs <- .tm_dirs(cc)
     info <- lapply(dirs, function(d) {
         files <- list.files(d, recursive = TRUE, all.files = TRUE, full.names = TRUE)
         c(n_files = length(files), bytes = sum(file.size(files)))

@@ -11,6 +11,7 @@ project_setup(
   analysis_subdir = NULL,
   raw_subdir = NULL,
   img_subdir = NULL,
+  datasets = NULL,
   lab = .tm_setting("lab"),
   grant = .tm_setting("grant"),
   home_base = .tm_setting("home_base"),
@@ -38,6 +39,11 @@ e.g. \code{"2025-04-28_growth-countess"}; a warning is given otherwise.}
 (e.g. \code{"FlowJo"}, \code{"FC"}, \code{"cytotoxicity_assays"}), inserted before
 \code{experiment_name} (projects only).}
 
+\item{datasets}{Names of datasets this folder uses, e.g. \code{"GEO_GSE12345"}
+or \code{"public/GEO_GSE12345"} (see \code{\link[=dataset_setup]{dataset_setup()}}). Their paths are
+returned in \verb{$datasets}, and the link is recorded in both folders'
+\code{.toastmaker} markers.}
+
 \item{lab}{Lab folder, e.g. \code{"AC"}.}
 
 \item{grant}{Grant or grouping folder.}
@@ -60,8 +66,8 @@ calling environment.}
 }
 \value{
 Invisibly, a named list of class \code{"cookiecutter"} with \code{bd} (the
-folder root) and one \verb{dir_*} element per subfolder, or \code{NULL} if you
-declined to create it. Its \code{type} attribute holds the layout.
+folder root), one \verb{dir_*} element per subfolder and, if requested,
+\code{datasets}; or \code{NULL} if you declined to create it. Its \code{type} attribute holds the layout.
 }
 \description{
 Creates a folder tree under
@@ -79,7 +85,8 @@ depends on \code{type}:
 
 
 Papers, presentations and posters also get a \code{README.md} explaining what
-goes in each subfolder. Every folder gets a \code{.toastmaker} marker file at
+goes in each subfolder; add figure folders to them with \code{\link[=figure_setup]{figure_setup()}}.
+Shared or public data lives in \verb{Datasets/} (see \code{\link[=dataset_setup]{dataset_setup()}}). Every folder gets a \code{.toastmaker} marker file at
 its root (see \code{\link[=project_root]{project_root()}}).
 
 Before creating anything new, the tree is printed with new folders marked,
@@ -110,6 +117,7 @@ paper
 unlink(tmp, recursive = TRUE)
 }
 \seealso{
-\code{\link[=toastmaker_setup]{toastmaker_setup()}}, \code{\link[=project_cleanup]{project_cleanup()}}, \code{\link[=project_snapshot]{project_snapshot()}},
+\code{\link[=toastmaker_setup]{toastmaker_setup()}}, \code{\link[=dataset_setup]{dataset_setup()}}, \code{\link[=figure_setup]{figure_setup()}},
+\code{\link[=project_record]{project_record()}}, \code{\link[=project_cleanup]{project_cleanup()}}, \code{\link[=project_snapshot]{project_snapshot()}},
 \code{\link[=project_root]{project_root()}}, \code{\link[=crumber]{crumber()}}
 }

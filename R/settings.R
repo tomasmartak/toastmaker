@@ -116,7 +116,7 @@ toastmaker_setup <- function() {
     grant <- .tm_prompt("Grant folder (Enter with no value = none)", cur("grant"))
     lab <- .tm_prompt("Default lab folder (Enter with no value = none)", cur("lab"))
 
-    types <- names(.tm_layouts)
+    types <- .tm_types
     cat("Default folder layout:\n")
     for (i in seq_along(types)) {
         cat(sprintf("  %d. %-13s -> %s/\n", i, types[i], .tm_layouts[[types[i]]]$top))

@@ -52,7 +52,7 @@ test_that("default type comes from settings", {
 test_that("project_setup requires a project name and a home_base", {
     local_tm_settings()
     withr::local_dir(withr::local_tempdir())
-    expect_error(project_setup(), "'project' is required")
+    expect_error(project_setup(), "A name is required")
 
     local_tm_settings(home_base = NULL)
     expect_error(setup_quiet("KO", root = local_root()), "No base folder set")

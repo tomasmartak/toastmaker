@@ -16,6 +16,11 @@ them.
 \item \code{\link[=project_setup]{project_setup()}} creates a project, paper, presentation or poster
 folder under \verb{<root>/<home_base>/[<grant>/][<lab>/]}, in \verb{Projects/},
 \verb{Papers/}, \verb{Presentations/} or \verb{Posters/}.
+\item \code{\link[=dataset_setup]{dataset_setup()}} creates a shared or public dataset folder in
+\verb{Datasets/} that projects can use.
+\item \code{\link[=figure_setup]{figure_setup()}} adds a figure folder to a paper, presentation or
+poster, linked to the projects it came from.
+\item \code{\link[=project_record]{project_record()}} records package versions in \code{renv.lock}.
 \item \code{\link[=project_root]{project_root()}} finds the folder a script belongs to.
 \item \code{\link[=data_manifest]{data_manifest()}} and \code{\link[=data_verify]{data_verify()}} record and check checksums of raw
 data.

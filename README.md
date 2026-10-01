@@ -78,7 +78,43 @@ project_setup("2026-11-05_EMBO", type = "poster")          # Posters/...
 | `presentation` | `slides/`, `figures/`, `scripts/`, `notes/` |
 | `poster` | `poster/`, `abstract/`, `figures/`, `scripts/` |
 
-Each one gets a `README.md` explaining what goes where. Figures go in one folder each (e.g. `figures/Fig1_growth/`) with the final image, `source_data/`, and a README naming the projects and experiments they came from.
+Each one gets a `README.md` explaining what goes where. Add one folder per figure, slide or poster panel with `figure_setup()`:
+
+``` r
+paper <- project_setup("2026_KO-screen", type = "paper")
+figure_setup("Fig2_growth", sources = c(p$dir_analysis, p$dir_img), where = paper)
+figure_setup("SuppFig1_gating", where = paper)   # goes into supplementary/
+```
+
+```
+Papers/2026_KO-screen/figures/Fig2_growth/
+├── README.md      "Made from: Projects/Proj1/analysis/FlowJo/2026-09-30_exp1, ..."
+├── panels/
+└── source_data/   the numbers plotted
+```
+
+Source paths are relative to the base folder, so they work on any computer that syncs it. The figure is also recorded in the source project's `.toastmaker` marker (`UsedIn:`), so you can see from a project where its results ended up.
+
+### Shared and public datasets
+
+Data that is public, large, or used by more than one project lives in `Datasets/`, next to `Projects/`. Data generated for a single project stays in that project's `raw/`.
+
+``` r
+dataset_setup("GEO_GSE12345")                                  # Datasets/public/GEO_GSE12345/
+dataset_setup("2026-03-12_scRNAseq-cohortA", source = "internal")
+p <- project_setup("Reanalysis", datasets = "GEO_GSE12345")
+read.csv(file.path(p$datasets$GEO_GSE12345, "processed", "counts.csv"))
+```
+
+```
+Datasets/public/GEO_GSE12345/
+├── README.md     where it came from (accession, date, version, licence) and how to get it again
+├── raw/          exactly as downloaded, never edited (+ MANIFEST.md5)
+├── processed/    tables derived from raw/
+└── scripts/      download and processing code
+```
+
+The link is recorded in both markers: the project lists `Datasets:` and the dataset lists `UsedBy:`.
 
 ### Documenting raw data
 
@@ -89,11 +125,22 @@ data_manifest(p)  # write raw/FC/2026-09-30_exp1/MANIFEST.md5
 data_verify(p)    # later: has anything changed, gone missing, or appeared?
 ```
 
+### Recording package versions
+
+``` r
+project_record(p)   # writes <project>/renv.lock
+```
+
+This records the R version and the exact version of every package the code in `scripts/` uses (needs `renv`). Only the small lockfile is written; no package library is copied into the synced folder. `project_setup()` reminds you when scripts have changed since the last recording. To recreate the environment later: `renv::restore(lockfile = "<project>/renv.lock")`.
+
 | Function | What it does |
 |------------------|------------------------------------------------------|
 | `toastmaker_setup()` | Guided setup of your defaults. |
 | `toastmaker_settings()` | View or change single defaults. |
 | `project_setup()` | Create a project, paper, presentation or poster tree and assign the path variables. |
+| `dataset_setup()` | Create a shared or public dataset folder. |
+| `figure_setup()` | Add a figure folder, linked to its sources, to a paper, presentation or poster. |
+| `project_record()` | Record package versions in `renv.lock`. |
 | `project_root()` | Find the project a script lives in. |
 | `data_manifest()` / `data_verify()` | Record and check checksums of raw data. |
 | `project_cleanup()` | Remove empty folders. Also runs automatically when R exits. |
