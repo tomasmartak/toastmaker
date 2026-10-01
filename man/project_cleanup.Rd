@@ -24,7 +24,7 @@ always kept.
 }
 \examples{
 tmp <- tempfile()
-p <- project_setup(project = "demo", root = tmp,
+p <- project_setup("demo", home_base = "base", root = tmp, confirm = FALSE,
                    auto_cleanup = FALSE, assign_global = FALSE)
 writeLines("x", file.path(p$dir_scripts, "analysis.R"))
 project_cleanup(p) # removes everything but scripts/

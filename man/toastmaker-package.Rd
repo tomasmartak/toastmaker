@@ -10,8 +10,20 @@ Helpers for a reproducible analysis layout:
 }
 \details{
 \itemize{
-\item \code{\link[=project_setup]{project_setup()}} creates \verb{<root>/<home_base>/<grant>/<lab>/Projects/<project>/}
-with \verb{analysis/}, \verb{raw/}, \verb{img/}, \verb{doc/} and \verb{scripts/} subdirectories.
+\item \code{\link[=toastmaker_setup]{toastmaker_setup()}} walks you through the defaults (base folder,
+grant, lab, default layout); \code{\link[=toastmaker_settings]{toastmaker_settings()}} views or changes
+them.
+\item \code{\link[=project_setup]{project_setup()}} creates a project, paper, presentation or poster
+folder under \verb{<root>/<home_base>/[<grant>/][<lab>/]}, in \verb{Projects/},
+\verb{Papers/}, \verb{Presentations/} or \verb{Posters/}.
+\item \code{\link[=dataset_setup]{dataset_setup()}} creates a shared or public dataset folder in
+\verb{Datasets/} that projects can use.
+\item \code{\link[=figure_setup]{figure_setup()}} adds a figure folder to a paper, presentation or
+poster, linked to the projects it came from.
+\item \code{\link[=project_record]{project_record()}} records package versions in \code{renv.lock}.
+\item \code{\link[=project_root]{project_root()}} finds the folder a script belongs to.
+\item \code{\link[=data_manifest]{data_manifest()}} and \code{\link[=data_verify]{data_verify()}} record and check checksums of raw
+data.
 \item \code{\link[=project_cleanup]{project_cleanup()}} removes the directories that stayed empty.
 \item \code{\link[=project_snapshot]{project_snapshot()}} reports how many files each directory holds.
 \item \code{\link[=crumber]{crumber()}} clears the global environment except for protected objects.
@@ -19,12 +31,10 @@ with \verb{analysis/}, \verb{raw/}, \verb{img/}, \verb{doc/} and \verb{scripts/}
 }
 \section{Options}{
 
-Set these in your \verb{~/.Rprofile} to avoid repeating yourself:
+Every setting in \code{\link[=toastmaker_settings]{toastmaker_settings()}} can be overridden with an R
+option \verb{toastmaker.<name>} (e.g. \code{toastmaker.home_base}), for example in
+\verb{~/.Rprofile}. In addition:
 \itemize{
-\item \code{toastmaker.root}: folder that contains \code{home_base}. Defaults to
-\verb{~/Documents} (or \code{~} on Windows, where it already points to Documents).
-\item \code{toastmaker.home_base}: default \code{home_base} (\code{"heiBOX"}).
-\item \code{toastmaker.grant}: default \code{grant} (\code{"GRK2727"}).
 \item \code{toastmaker.color}: use ANSI colours in messages (default: \code{interactive()}).
 }
 }
