@@ -47,7 +47,7 @@ skipped in the path.
 \examples{
 \dontrun{
 toastmaker_settings()                         # show current settings
-toastmaker_settings(home_base = "heiBOX", grant = "GRK2727")
+toastmaker_settings(home_base = "heiBOX", grant = "MyGrant")
 toastmaker_settings(grant = NULL)             # unset the grant
 }
 }
