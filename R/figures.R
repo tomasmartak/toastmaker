@@ -24,7 +24,7 @@
 #'   `"SuppFig1_gating"`, `"Slide03_knockouts"` or `"Panel1_overview"`.
 #' @param sources Folders or files the figure was made from, e.g.
 #'   `c(p$dir_analysis, p$dir_img)`.
-#' @param where The paper, presentation or poster: a `"cookiecutter"` from
+#' @param where The paper, presentation or poster: a `"toast"` from
 #'   [project_setup()] or a path inside it. Default: the working directory.
 #'
 #' @return Invisibly, a list with `dir_figure`, `dir_panels` and
@@ -48,7 +48,7 @@ figure_setup <- function(figure, sources = NULL, where = ".") {
         !nzchar(figure)) {
         stop("'figure' must be a single name, e.g. \"Fig2_growth\".", call. = FALSE)
     }
-    bd <- if (inherits(where, "cookiecutter")) where$bd else project_root(where)
+    bd <- if (inherits(where, "toast")) where$bd else project_root(where)
     bd <- .tm_norm(bd)
     marker <- .tm_read_marker(bd)
     type <- marker$Type

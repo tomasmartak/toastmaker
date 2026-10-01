@@ -5,7 +5,7 @@ test_that("project_setup builds the expected tree", {
                      raw_subdir = "FC", root = root, check_raw = FALSE)
 
     bd <- file.path(root, "heiBOX", "GRK2727", "AC", "Projects", "KO")
-    expect_s3_class(p, "cookiecutter")
+    expect_s3_class(p, "toast")
     expect_equal(attr(p, "type"), "project")
     expect_equal(p$bd, bd)
     expect_equal(p$dir_raw, file.path(bd, "raw", "FC", "2025-01-01_exp1"))
@@ -26,7 +26,7 @@ test_that("paper, presentation and poster layouts", {
     root <- local_root()
     paper <- setup_quiet("KO-screen", type = "paper", root = root)
     expect_equal(paper$bd, file.path(root, "heiBOX", "Papers", "KO-screen"))
-    expect_setequal(names(paper), c("bd", "dir_manuscript", "dir_figures",
+    expect_setequal(names(paper), c("bd", "dir_home", "dir_manuscript", "dir_figures",
                                     "dir_supplementary", "dir_scripts", "dir_submission"))
     expect_true(file.exists(file.path(paper$bd, "README.md")))
 
@@ -100,7 +100,7 @@ test_that("no confirmation is asked when everything exists", {
     utils::capture.output(
         p <- project_setup("KO", root = root, confirm = TRUE, assign_global = FALSE)
     )
-    expect_s3_class(p, "cookiecutter")
+    expect_s3_class(p, "toast")
 })
 
 test_that("assign_global populates the calling environment", {
@@ -108,7 +108,8 @@ test_that("assign_global populates the calling environment", {
     root <- local_root()
     env <- new.env()
     utils::capture.output(
-        local(project_setup("KO", root = root, auto_cleanup = FALSE, confirm = FALSE),
+        local(project_setup("KO", root = root, auto_cleanup = FALSE, confirm = FALSE,
+                           assign_global = TRUE),
               envir = env)
     )
     expect_true(all(c("bd", "dir_raw", "dir_list", "core_objects") %in% ls(env)))

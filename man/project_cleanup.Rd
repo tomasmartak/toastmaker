@@ -8,7 +8,7 @@ project_cleanup(dirs = NULL, verbose = TRUE)
 }
 \arguments{
 \item{dirs}{Directories to inspect. May be a character vector or a
-\code{"cookiecutter"} object from \code{\link[=project_setup]{project_setup()}} (its subdirectories are
+\code{"toast"} object from \code{\link[=project_setup]{project_setup()}} (its subdirectories are
 checked; the project root \code{bd} is left alone). If \code{NULL} (default), uses the directories created by
 \code{project_setup()} in this session with \code{auto_cleanup = TRUE}.}
 

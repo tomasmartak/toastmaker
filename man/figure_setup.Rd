@@ -13,7 +13,7 @@ figure_setup(figure, sources = NULL, where = ".")
 \item{sources}{Folders or files the figure was made from, e.g.
 \code{c(p$dir_analysis, p$dir_img)}.}
 
-\item{where}{The paper, presentation or poster: a \code{"cookiecutter"} from
+\item{where}{The paper, presentation or poster: a \code{"toast"} from
 \code{\link[=project_setup]{project_setup()}} or a path inside it. Default: the working directory.}
 }
 \value{

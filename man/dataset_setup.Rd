@@ -14,7 +14,7 @@ dataset_setup(
   confirm = interactive(),
   check_raw = TRUE,
   auto_cleanup = TRUE,
-  assign_global = TRUE
+  assign_global = FALSE
 )
 }
 \arguments{
@@ -41,12 +41,13 @@ folder (default \code{TRUE}; prompts only in interactive sessions).}
 \item{auto_cleanup}{If \code{TRUE} (default), directories created by this call
 that are still empty are removed when the R session exits.}
 
-\item{assign_global}{If \code{TRUE} (default), assigns \code{bd}, each \verb{dir_*}
-path, \code{dir_list} and \code{core_objects} (used by \code{\link[=crumber]{crumber()}}) into the
-calling environment.}
+\item{assign_global}{If \code{TRUE}, also assigns \code{bd}, each \verb{dir_*} path,
+\code{dir_list} and \code{core_objects} (used by \code{\link[=crumber]{crumber()}}) into the calling
+environment. Default \code{FALSE}: keep the result, e.g.
+\code{toast <- project_setup("X")}, and use \code{toast$dir_raw}.}
 }
 \value{
-Invisibly, a \code{"cookiecutter"} object with \code{bd}, \code{dir_raw},
+Invisibly, a \code{"toast"} object with \code{bd}, \code{dir_raw},
 \code{dir_processed} and \code{dir_scripts}, or \code{NULL} if you declined.
 }
 \description{
