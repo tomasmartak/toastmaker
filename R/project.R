@@ -27,7 +27,10 @@
 #'
 #' Defaults for `root`, `home_base`, `grant`, `lab` and `type` come from
 #' [toastmaker_settings()]. `home_base` must be set; `grant` and `lab` are
-#' skipped when unset (or `NULL`).
+#' skipped when unset (or `NULL`). If you pass `grant` or `lab` yourself, the
+#' other one is *not* taken from the settings, so
+#' `project_setup("X", grant = "G")` gives no lab folder even if a default lab
+#' is saved. Pass both to use both, or neither to use the saved defaults.
 #'
 #' @param project Name of the project, paper, presentation or poster, e.g.
 #'   `"Initial_KOs"`. If omitted, the project containing the working
@@ -45,8 +48,8 @@
 #'   or `"public/GEO_GSE12345"` (see [dataset_setup()]). Their paths are
 #'   returned in `$datasets`, and the link is recorded in both folders'
 #'   `.toastmaker` markers.
-#' @param lab Lab folder, e.g. `"AC"`.
-#' @param grant Grant or grouping folder.
+#' @param lab Lab folder, e.g. `"AC"`. Optional.
+#' @param grant Grant or grouping folder. Optional.
 #' @param home_base Base folder inside `root`, e.g. a synced cloud folder.
 #' @param root Folder that contains `home_base`.
 #' @param confirm Ask before creating new folders (default: `interactive()`).
@@ -93,6 +96,9 @@ project_setup <- function(project,
                           check_raw       = TRUE,
                           auto_cleanup    = TRUE,
                           assign_global   = TRUE) {
+    gl <- .tm_grant_lab(grant, lab, missing(grant), missing(lab))
+    grant <- gl$grant
+    lab <- gl$lab
     if (!is.null(type)) {
         type <- .tm_check_type(type)
     } else if (!missing(project)) {

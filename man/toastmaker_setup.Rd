@@ -11,7 +11,7 @@ Invisibly, \code{TRUE} if settings were saved, \code{FALSE} otherwise.
 }
 \description{
 Walks you through the settings used by \code{\link[=project_setup]{project_setup()}} (root folder,
-base folder, grant, lab and default layout) and saves them. Press Enter to
+base folder, grant and default layout) and saves them. Press Enter to
 keep the value shown in brackets, or type \code{-} to clear an optional value.
 Runs automatically the first time \code{\link[=project_setup]{project_setup()}} is used interactively
 without a \code{home_base}.
