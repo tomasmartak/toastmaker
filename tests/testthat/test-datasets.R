@@ -6,7 +6,7 @@ test_that("dataset_setup builds the dataset tree next to Projects", {
                            auto_cleanup = FALSE, assign_global = FALSE)
     )
     expect_equal(d$bd, file.path(root, "heiBOX", "Datasets", "public", "GEO_GSE1"))
-    expect_setequal(names(d), c("bd", "dir_raw", "dir_processed", "dir_scripts"))
+    expect_setequal(names(d), c("bd", "dir_home", "dir_raw", "dir_processed", "dir_scripts"))
     expect_true(file.exists(file.path(d$bd, "README.md")))
     marker <- read.dcf(file.path(d$bd, ".toastmaker"))
     expect_equal(unname(marker[1, c("Type", "Source")]), c("dataset", "public"))

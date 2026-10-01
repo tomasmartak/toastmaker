@@ -57,20 +57,22 @@
 #'   folder (default `TRUE`; prompts only in interactive sessions).
 #' @param auto_cleanup If `TRUE` (default), directories created by this call
 #'   that are still empty are removed when the R session exits.
-#' @param assign_global If `TRUE` (default), assigns `bd`, each `dir_*`
-#'   path, `dir_list` and `core_objects` (used by [crumber()]) into the
-#'   calling environment.
+#' @param assign_global If `TRUE`, also assigns `bd`, each `dir_*` path,
+#'   `dir_list` and `core_objects` (used by [crumber()]) into the calling
+#'   environment. Default `FALSE`: keep the result, e.g.
+#'   `toast <- project_setup("X")`, and use `toast$dir_raw`.
 #'
-#' @return Invisibly, a named list of class `"cookiecutter"` with `bd` (the
-#'   folder root), one `dir_*` element per subfolder and, if requested,
-#'   `datasets`; or `NULL` if you declined to create it. Its `type` attribute holds the layout.
+#' @return Invisibly, a named list of class `"toast"` with `bd` (the
+#'   folder root), `dir_home` (the `<root>/<home_base>` folder, e.g.
+#'   `C:/Users/abc/Documents/heiBOX`), one `dir_*` element per subfolder and,
+#'   if requested, `datasets`; or `NULL` if you declined to create it. Its `type` attribute holds the layout.
 #' @seealso [toastmaker_setup()], [dataset_setup()], [figure_setup()],
 #'   [project_record()], [project_cleanup()], [project_snapshot()],
 #'   [project_root()], [crumber()]
 #' @export
 #' @examples
 #' tmp <- tempfile()
-#' p <- project_setup("Initial_KOs", lab = "AC", home_base = "heiBOX",
+#' toast <- project_setup("Initial_KOs", lab = "AC", home_base = "heiBOX",
 #'                    experiment_name = "2025-04-28_growth",
 #'                    raw_subdir = "FC", root = tmp, confirm = FALSE,
 #'                    check_raw = FALSE, auto_cleanup = FALSE,
@@ -95,7 +97,7 @@ project_setup <- function(project,
                           confirm         = interactive(),
                           check_raw       = TRUE,
                           auto_cleanup    = TRUE,
-                          assign_global   = TRUE) {
+                          assign_global   = FALSE) {
     gl <- .tm_grant_lab(grant, lab, missing(grant), missing(lab))
     grant <- gl$grant
     lab <- gl$lab
@@ -116,8 +118,8 @@ project_setup <- function(project,
 }
 
 #' @export
-print.cookiecutter <- function(x, ...) {
-    cat("<cookiecutter ", attr(x, "type") %||% "project", ">\n", sep = "")
+print.toast <- function(x, ...) {
+    cat("<toast ", attr(x, "type") %||% "project", ">\n", sep = "")
     for (nm in setdiff(names(x), "datasets")) cat(sprintf("  %-12s %s\n", nm, x[[nm]]))
     for (nm in names(x$datasets)) {
         cat(sprintf("  %-12s %s\n", paste0("datasets$", nm), x$datasets[[nm]]))
@@ -132,7 +134,7 @@ print.cookiecutter <- function(x, ...) {
 #' always kept.
 #'
 #' @param dirs Directories to inspect. May be a character vector or a
-#'   `"cookiecutter"` object from [project_setup()] (its subdirectories are
+#'   `"toast"` object from [project_setup()] (its subdirectories are
 #'   checked; the project root `bd` is left alone). If `NULL` (default), uses the directories created by
 #'   `project_setup()` in this session with `auto_cleanup = TRUE`.
 #' @param verbose Print what is removed or kept (default `TRUE`).
@@ -149,7 +151,7 @@ print.cookiecutter <- function(x, ...) {
 project_cleanup <- function(dirs = NULL, verbose = TRUE) {
     from_state <- is.null(dirs)
     if (from_state) dirs <- .tm_state$dirs
-    if (inherits(dirs, "cookiecutter")) {
+    if (inherits(dirs, "toast")) {
         # Leaf directories plus their parents below the project root.
         bd <- dirs$bd
         dirs <- unlist(lapply(.tm_dirs(dirs), .tm_below, bd = bd))
@@ -181,7 +183,7 @@ project_cleanup <- function(dirs = NULL, verbose = TRUE) {
 #' Shows, for each directory of a project, whether it exists, how many files
 #' it holds and their total size.
 #'
-#' @param cc A `"cookiecutter"` object from [project_setup()]. If `NULL`,
+#' @param cc A `"toast"` object from [project_setup()]. If `NULL`,
 #'   `dir_list` is looked up from the calling environment.
 #'
 #' @return Invisibly, a data frame with columns `dir`, `path`, `exists`,
@@ -197,7 +199,7 @@ project_snapshot <- function(cc = NULL) {
     if (is.null(cc)) {
         cc <- get0("dir_list", envir = parent.frame(), inherits = TRUE)
     }
-    if (!inherits(cc, "cookiecutter")) {
+    if (!inherits(cc, "toast")) {
         stop("No project found: pass the result of project_setup() as 'cc'.",
              call. = FALSE)
     }

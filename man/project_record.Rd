@@ -7,8 +7,10 @@
 project_record(where = ".")
 }
 \arguments{
-\item{where}{A \code{"cookiecutter"} from \code{\link[=project_setup]{project_setup()}} or a path inside
-the project. Default: the working directory.}
+\item{where}{A \code{"toast"} from \code{\link[=project_setup]{project_setup()}}, a path inside the project,
+or the name of a project, e.g. \code{"Initial_KOs"} (looked up under the
+\code{root}/\code{home_base} from \code{\link[=toastmaker_settings]{toastmaker_settings()}}). Default: the working
+directory.}
 }
 \value{
 Invisibly, the path of the lockfile.

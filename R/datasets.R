@@ -27,7 +27,7 @@
 #'   (generated in-house).
 #' @inheritParams project_setup
 #'
-#' @return Invisibly, a `"cookiecutter"` object with `bd`, `dir_raw`,
+#' @return Invisibly, a `"toast"` object with `bd`, `dir_raw`,
 #'   `dir_processed` and `dir_scripts`, or `NULL` if you declined.
 #' @seealso [project_setup()]
 #' @export
@@ -50,7 +50,7 @@ dataset_setup <- function(name,
                           confirm       = interactive(),
                           check_raw     = TRUE,
                           auto_cleanup  = TRUE,
-                          assign_global = TRUE) {
+                          assign_global = FALSE) {
     source <- match.arg(source)
     gl <- .tm_grant_lab(grant, lab, missing(grant), missing(lab))
     grant <- gl$grant

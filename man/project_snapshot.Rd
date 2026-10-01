@@ -7,7 +7,7 @@
 project_snapshot(cc = NULL)
 }
 \arguments{
-\item{cc}{A \code{"cookiecutter"} object from \code{\link[=project_setup]{project_setup()}}. If \code{NULL},
+\item{cc}{A \code{"toast"} object from \code{\link[=project_setup]{project_setup()}}. If \code{NULL},
 \code{dir_list} is looked up from the calling environment.}
 }
 \value{

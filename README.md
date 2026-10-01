@@ -50,16 +50,19 @@ This shows the tree, asks you to confirm anything new, and creates (existing fol
 └── scripts/
 ```
 
-It puts `bd`, `dir_analysis`, `dir_raw`, `dir_img`, `dir_doc`, `dir_scripts` and `dir_list` into your workspace:
+It returns one object holding `bd` (the project folder), `dir_home` (e.g. `~/Documents/heiBOX`), `dir_analysis`, `dir_raw`, `dir_img`, `dir_doc` and `dir_scripts`:
 
 ``` r
-df <- read.csv(file.path(dir_raw, "counts.csv"))
+toast <- project_setup("Proj1", experiment_name = "2026-09-30_exp1", raw_subdir = "FC")
+df <- read.csv(file.path(toast$dir_raw, "counts.csv"))
 ```
+
+(Pass `assign_global = TRUE` to also get each `dir_*` as a plain variable and use [crumber()].)
 
 Inside a script that lives in the project, `project` can be left out. The project is then found from its `.toastmaker` marker, so the script still works after the folder is synced to another computer:
 
 ``` r
-p <- project_setup(experiment_name = "2026-09-30_exp1", raw_subdir = "FC")
+toast <- project_setup(experiment_name = "2026-09-30_exp1", raw_subdir = "FC")
 ```
 
 ### Papers, presentations and posters

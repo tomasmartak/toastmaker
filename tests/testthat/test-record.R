@@ -26,3 +26,18 @@ test_that("project_setup reminds about missing or outdated lockfiles", {
     expect_true(any(grepl("not recorded yet", run())))
     expect_false(any(grepl("not recorded", run())))  # once per session
 })
+
+test_that("project_record finds a project by name or path", {
+    skip_if_not_installed("renv")
+    local_tm_settings()
+    root <- local_root()
+    withr::local_options(toastmaker.root = root)
+    p <- setup_quiet("KO", root = root)
+    expect_equal(p$dir_home, file.path(root, "heiBOX"))
+    writeLines("library(withr)", file.path(p$dir_scripts, "a.R"))
+    utils::capture.output(lock <- project_record("KO"))
+    expect_equal(lock, file.path(p$bd, "renv.lock"))
+    utils::capture.output(lock2 <- project_record(p$dir_scripts))
+    expect_equal(lock2, lock)
+    expect_error(project_record("nope"), "No toastmaker project")
+})

@@ -19,7 +19,7 @@ project_setup(
   confirm = interactive(),
   check_raw = TRUE,
   auto_cleanup = TRUE,
-  assign_global = TRUE
+  assign_global = FALSE
 )
 }
 \arguments{
@@ -60,14 +60,16 @@ folder (default \code{TRUE}; prompts only in interactive sessions).}
 \item{auto_cleanup}{If \code{TRUE} (default), directories created by this call
 that are still empty are removed when the R session exits.}
 
-\item{assign_global}{If \code{TRUE} (default), assigns \code{bd}, each \verb{dir_*}
-path, \code{dir_list} and \code{core_objects} (used by \code{\link[=crumber]{crumber()}}) into the
-calling environment.}
+\item{assign_global}{If \code{TRUE}, also assigns \code{bd}, each \verb{dir_*} path,
+\code{dir_list} and \code{core_objects} (used by \code{\link[=crumber]{crumber()}}) into the calling
+environment. Default \code{FALSE}: keep the result, e.g.
+\code{toast <- project_setup("X")}, and use \code{toast$dir_raw}.}
 }
 \value{
-Invisibly, a named list of class \code{"cookiecutter"} with \code{bd} (the
-folder root), one \verb{dir_*} element per subfolder and, if requested,
-\code{datasets}; or \code{NULL} if you declined to create it. Its \code{type} attribute holds the layout.
+Invisibly, a named list of class \code{"toast"} with \code{bd} (the
+folder root), \code{dir_home} (the \verb{<root>/<home_base>} folder, e.g.
+\verb{C:/Users/abc/Documents/heiBOX}), one \verb{dir_*} element per subfolder and,
+if requested, \code{datasets}; or \code{NULL} if you declined to create it. Its \code{type} attribute holds the layout.
 }
 \description{
 Creates a folder tree under
@@ -107,7 +109,7 @@ is saved. Pass both to use both, or neither to use the saved defaults.
 }
 \examples{
 tmp <- tempfile()
-p <- project_setup("Initial_KOs", lab = "AC", home_base = "heiBOX",
+toast <- project_setup("Initial_KOs", lab = "AC", home_base = "heiBOX",
                    experiment_name = "2025-04-28_growth",
                    raw_subdir = "FC", root = tmp, confirm = FALSE,
                    check_raw = FALSE, auto_cleanup = FALSE,

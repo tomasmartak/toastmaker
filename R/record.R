@@ -16,8 +16,10 @@
 #'
 #' Requires the \pkg{renv} package.
 #'
-#' @param where A `"cookiecutter"` from [project_setup()] or a path inside
-#'   the project. Default: the working directory.
+#' @param where A `"toast"` from [project_setup()], a path inside the project,
+#'   or the name of a project, e.g. `"Initial_KOs"` (looked up under the
+#'   `root`/`home_base` from [toastmaker_settings()]). Default: the working
+#'   directory.
 #'
 #' @return Invisibly, the path of the lockfile.
 #' @export
@@ -26,7 +28,7 @@ project_record <- function(where = ".") {
         stop("project_record() needs the renv package: install.packages(\"renv\").",
              call. = FALSE)
     }
-    bd <- if (inherits(where, "cookiecutter")) where$bd else project_root(where)
+    bd <- if (inherits(where, "toast")) where$bd else .tm_locate(where)
     scripts <- file.path(bd, "scripts")
     pkgs <- if (dir.exists(scripts)) {
         unique(renv::dependencies(scripts, progress = FALSE, quiet = TRUE)$Package)
@@ -71,4 +73,29 @@ project_record <- function(where = ".") {
     .tm_say(msg, ": run project_record() to update renv.lock.", style = "3")
     .tm_state$declined <- c(.tm_state$declined, key)
     invisible(NULL)
+}
+
+# A project folder from a path inside it, or from its name.
+.tm_locate <- function(where) {
+    if (dir.exists(where)) {
+        bd <- .tm_find_marker(where)
+        if (!is.null(bd)) return(bd)
+    }
+    if (is.character(where) && length(where) == 1L && !grepl("[/\\]", where)) {
+        home <- .tm_path(path.expand(.tm_setting("root")),
+                         .tm_require_home_base(.tm_setting("home_base")))
+        tops <- vapply(.tm_layouts, `[[`, "", "top")
+        hits <- unlist(lapply(c("", "*/", "*/*/"), function(g) {
+            Sys.glob(file.path(home, paste0(g, tops), where, ".toastmaker"))
+        }))
+        hits <- unique(dirname(.tm_norm(hits)))
+        if (length(hits) == 1L) return(hits)
+        if (length(hits) > 1L) {
+            stop("Several folders are called '", where, "': ",
+                 paste(hits, collapse = ", "), ". Pass the full path.", call. = FALSE)
+        }
+    }
+    stop("No toastmaker project found for '", paste(where, collapse = ""), "'. ",
+         "Pass the project's path, its name, or the result of project_setup().",
+         call. = FALSE)
 }

@@ -6,7 +6,7 @@
 #' checked without R (`md5sum -c MANIFEST.md5`). `README.md` and the manifest
 #' itself are not included, so the README can be edited freely.
 #'
-#' @param dir A folder, or a `"cookiecutter"` project from [project_setup()]
+#' @param dir A folder, or a `"toast"` project from [project_setup()]
 #'   (its `dir_raw` is used).
 #' @param overwrite Replace an existing manifest (default `FALSE`).
 #'
@@ -83,7 +83,7 @@ data_verify <- function(dir) {
 .tm_manifest_name <- "MANIFEST.md5"
 
 .tm_data_dir <- function(dir) {
-    if (inherits(dir, "cookiecutter")) {
+    if (inherits(dir, "toast")) {
         if (is.null(dir$dir_raw)) stop("This project has no 'dir_raw'.", call. = FALSE)
         dir <- dir$dir_raw
     }

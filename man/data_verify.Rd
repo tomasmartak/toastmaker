@@ -7,7 +7,7 @@
 data_verify(dir)
 }
 \arguments{
-\item{dir}{A folder, or a \code{"cookiecutter"} project from \code{\link[=project_setup]{project_setup()}}
+\item{dir}{A folder, or a \code{"toast"} project from \code{\link[=project_setup]{project_setup()}}
 (its \code{dir_raw} is used).}
 }
 \value{

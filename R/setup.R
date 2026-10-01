@@ -19,13 +19,16 @@
         }
         type <- marker$Type
         name <- marker$Name %||% basename(bd)
+        home <- .tm_base(bd, type)
+        for (f in c(marker$Lab, marker$Grant)) if (!is.na(f)) home <- dirname(home)
         if (identical(type, "dataset")) args$source <- marker$Source
     } else {
         if (!is.character(name) || length(name) != 1L || !nzchar(name)) {
             stop("The name must be a single non-empty string.", call. = FALSE)
         }
         home_base <- .tm_require_home_base(home_base)
-        bd <- .tm_path(path.expand(root), home_base, grant, lab,
+        home <- .tm_path(path.expand(root), home_base)
+        bd <- .tm_path(home, grant, lab,
                        .tm_layouts[[type]]$top, args$source, name)
     }
     layout <- .tm_layouts[[type]]
@@ -43,8 +46,8 @@
                 args$experiment_name, "\").", call. = FALSE)
     }
 
-    cc <- structure(c(list(bd = bd), layout$dirs(bd, args)),
-                    class = "cookiecutter", type = type)
+    cc <- structure(c(list(bd = bd, dir_home = home), layout$dirs(bd, args)),
+                    class = "toast", type = type)
     if (!is.null(datasets)) {
         cc$datasets <- .tm_resolve_datasets(datasets, .tm_base(bd, type))
     }
@@ -115,10 +118,11 @@
     invisible(cc)
 }
 
-# The folder paths of a cookiecutter (its dir_* elements).
+# The project's own folder paths (its dir_* elements; `dir_home` is the
+# surrounding home folder, not part of the project, so it is left out).
 .tm_dirs <- function(cc) {
     x <- unclass(cc)
-    unlist(x[startsWith(names(x), "dir_")])
+    unlist(x[startsWith(names(x), "dir_") & names(x) != "dir_home"])
 }
 
 # The base folder (<root>/<home_base>/[<grant>/][<lab>/]) of an item.
