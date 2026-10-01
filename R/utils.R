@@ -5,12 +5,16 @@
 .tm_state <- new.env(parent = emptyenv())
 .tm_state$dirs <- character(0L)
 .tm_state$hooked <- FALSE
+.tm_state$declined <- character(0L) # README/manifest offers declined this session
 
-# file.path() that silently drops NULL components.
+`%||%` <- function(x, y) if (is.null(x)) y else x
+
+# file.path() that silently drops NULL components. Separators are always "/",
+# matching what dirname() returns on Windows, so paths compare reliably.
 .tm_path <- function(...) {
     parts <- Filter(Negate(is.null), list(...))
     if (length(parts) == 0L) stop("No path components supplied.", call. = FALSE)
-    do.call(file.path, parts)
+    gsub("\\\\", "/", do.call(file.path, parts))
 }
 
 .tm_default_root <- function() {
@@ -18,9 +22,21 @@
 }
 
 # A directory counts as empty if it holds no files, even in subdirectories.
+# toastmaker's own marker files do not count.
 .tm_is_empty <- function(path) {
     !dir.exists(path) ||
-        length(list.files(path, recursive = TRUE, all.files = TRUE)) == 0L
+        all(basename(list.files(path, recursive = TRUE, all.files = TRUE)) ==
+                ".toastmaker")
+}
+
+# `path` and its parents, up to but excluding `bd`.
+.tm_below <- function(path, bd) {
+    out <- character(0L)
+    while (!identical(path, bd) && startsWith(path, bd)) {
+        out <- c(out, path)
+        path <- dirname(path)
+    }
+    out
 }
 
 # `path` plus every ancestor that does not exist yet (deepest first).
@@ -64,4 +80,40 @@
     }
     stop("Supply object names as bare names, strings, or c(...) of them.",
          call. = FALSE)
+}
+
+# Wrappers so tests can mock user interaction.
+.tm_interactive <- function() interactive()
+.tm_readline <- function(prompt) readline(prompt)
+
+# Ask a yes/no question; Enter gives `default`.
+.tm_yes <- function(question, default = TRUE) {
+    ans <- tolower(trimws(.tm_readline(paste0(question, if (default) " [Y/n] " else " [y/N] "))))
+    if (!nzchar(ans)) return(default)
+    startsWith(ans, "y")
+}
+
+# Draw the folders `dirs` (and their parents) below `bd` as a tree, marking
+# the ones that do not exist yet.
+.tm_tree <- function(bd, dirs) {
+    nodes <- unique(unlist(lapply(dirs, .tm_below, bd = bd)))
+    rel <- substring(nodes, nchar(bd) + 2L)
+    utf8 <- isTRUE(l10n_info()[["UTF-8"]])
+    tee  <- if (utf8) "\u251c\u2500\u2500 " else "|-- "
+    elb  <- if (utf8) "\u2514\u2500\u2500 " else "`-- "
+    pipe <- if (utf8) "\u2502   " else "|   "
+    new  <- function(p) if (dir.exists(p)) "" else "  (new)"
+
+    lines <- paste0(bd, "/", new(bd))
+    walk <- function(parent, prefix) {
+        kids <- sort(rel[dirname(rel) == parent])
+        for (i in seq_along(kids)) {
+            last <- i == length(kids)
+            lines <<- c(lines, paste0(prefix, if (last) elb else tee,
+                                      basename(kids[i]), "/", new(file.path(bd, kids[i]))))
+            walk(kids[i], paste0(prefix, if (last) "    " else pipe))
+        }
+    }
+    walk(".", "")
+    lines
 }

@@ -20,7 +20,7 @@ it holds and their total size.
 }
 \examples{
 tmp <- tempfile()
-p <- project_setup(project = "demo", root = tmp,
+p <- project_setup("demo", home_base = "base", root = tmp, confirm = FALSE,
                    auto_cleanup = FALSE, assign_global = FALSE)
 project_snapshot(p)
 unlink(tmp, recursive = TRUE)

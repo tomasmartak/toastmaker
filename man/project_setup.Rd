@@ -2,79 +2,114 @@
 % Please edit documentation in R/project.R
 \name{project_setup}
 \alias{project_setup}
-\title{Set up a project directory tree}
+\title{Set up a project, paper, presentation or poster folder}
 \usage{
 project_setup(
-  home_base = getOption("toastmaker.home_base", "heiBOX"),
-  grant = getOption("toastmaker.grant", "GRK2727"),
-  lab = NULL,
   project,
+  type = NULL,
   experiment_name = NULL,
   analysis_subdir = NULL,
   raw_subdir = NULL,
   img_subdir = NULL,
-  root = getOption("toastmaker.root", .tm_default_root()),
+  lab = .tm_setting("lab"),
+  grant = .tm_setting("grant"),
+  home_base = .tm_setting("home_base"),
+  root = .tm_setting("root"),
+  confirm = interactive(),
+  check_raw = TRUE,
   auto_cleanup = TRUE,
   assign_global = TRUE
 )
 }
 \arguments{
-\item{home_base}{Sync/home folder inside \code{root}
-(default \code{getOption("toastmaker.home_base", "heiBOX")}).}
+\item{project}{Name of the project, paper, presentation or poster, e.g.
+\code{"Initial_KOs"}. If omitted, the project containing the working
+directory is used (found via its \code{.toastmaker} marker), so scripts work
+wherever the project is synced to.}
 
-\item{grant}{Grant or grouping folder
-(default \code{getOption("toastmaker.grant", "GRK2727")}).}
-
-\item{lab}{Lab identifier, e.g. \code{"AC"}. Optional.}
-
-\item{project}{Project name, e.g. \code{"Initial_KOs"}. Required.}
+\item{type}{Folder layout: \code{"project"}, \code{"paper"}, \code{"presentation"} or
+\code{"poster"}. Default from settings (\code{"project"} unless changed).}
 
 \item{experiment_name}{Experiment folder appended to \code{analysis}, \code{raw},
-\code{img} and \code{doc}, e.g. \code{"2025-04-28_growth-countess"}. Optional.}
+\code{img} and \code{doc} (projects only). By convention it starts with the date,
+e.g. \code{"2025-04-28_growth-countess"}; a warning is given otherwise.}
 
 \item{analysis_subdir, raw_subdir, img_subdir}{Optional intermediate folders
 (e.g. \code{"FlowJo"}, \code{"FC"}, \code{"cytotoxicity_assays"}), inserted before
-\code{experiment_name}.}
+\code{experiment_name} (projects only).}
 
-\item{root}{Folder that contains \code{home_base}
-(default \code{getOption("toastmaker.root")}, else \verb{~/Documents}, or \code{~} on
-Windows).}
+\item{lab}{Lab folder, e.g. \code{"AC"}.}
+
+\item{grant}{Grant or grouping folder.}
+
+\item{home_base}{Base folder inside \code{root}, e.g. a synced cloud folder.}
+
+\item{root}{Folder that contains \code{home_base}.}
+
+\item{confirm}{Ask before creating new folders (default: \code{interactive()}).}
+
+\item{check_raw}{Offer a README and checksum manifest for the raw data
+folder (default \code{TRUE}; prompts only in interactive sessions).}
 
 \item{auto_cleanup}{If \code{TRUE} (default), directories created by this call
 that are still empty are removed when the R session exits.}
 
-\item{assign_global}{If \code{TRUE} (default), assigns \code{bd}, \code{dir_analysis},
-\code{dir_raw}, \code{dir_img}, \code{dir_doc}, \code{dir_scripts}, \code{dir_list} and
-\code{core_objects} (used by \code{\link[=crumber]{crumber()}}) into the calling environment.}
+\item{assign_global}{If \code{TRUE} (default), assigns \code{bd}, each \verb{dir_*}
+path, \code{dir_list} and \code{core_objects} (used by \code{\link[=crumber]{crumber()}}) into the
+calling environment.}
 }
 \value{
-Invisibly, a named list of class \code{"cookiecutter"} with elements
-\code{bd}, \code{dir_analysis}, \code{dir_raw}, \code{dir_img}, \code{dir_doc} and \code{dir_scripts}.
+Invisibly, a named list of class \code{"cookiecutter"} with \code{bd} (the
+folder root) and one \verb{dir_*} element per subfolder, or \code{NULL} if you
+declined to create it. Its \code{type} attribute holds the layout.
 }
 \description{
-Creates the standard subdirectories under
-\verb{<root>/<home_base>/<grant>/<lab>/Projects/<project>/}:
+Creates a folder tree under
+\verb{<root>/<home_base>/[<grant>/][<lab>/]<Top>/<project>/}, where \verb{<Top>}
+depends on \code{type}:
 }
 \details{
-\if{html}{\out{<div class="sourceCode">}}\preformatted{analysis/[analysis_subdir/][experiment_name/]
-raw/[raw_subdir/][experiment_name/]
-img/[img_subdir/][experiment_name/]
-doc/[experiment_name/]
-scripts/
-}\if{html}{\out{</div>}}
+\tabular{lll}{
+   \code{type} \tab \verb{<Top>} \tab Subfolders \cr
+   \code{"project"} \tab \code{Projects} \tab \verb{analysis/[analysis_subdir/][experiment_name/]}, \verb{raw/[raw_subdir/][experiment_name/]}, \verb{img/[img_subdir/][experiment_name/]}, \verb{doc/[experiment_name/]}, \verb{scripts/} \cr
+   \code{"paper"} \tab \code{Papers} \tab \verb{manuscript/}, \verb{figures/}, \verb{supplementary/}, \verb{scripts/}, \verb{submission/} \cr
+   \code{"presentation"} \tab \code{Presentations} \tab \verb{slides/}, \verb{figures/}, \verb{scripts/}, \verb{notes/} \cr
+   \code{"poster"} \tab \code{Posters} \tab \verb{poster/}, \verb{abstract/}, \verb{figures/}, \verb{scripts/} \cr
+}
 
-Existing directories are left untouched. Any path component set to \code{NULL}
-(e.g. \code{lab} or \code{grant}) is skipped.
+
+Papers, presentations and posters also get a \code{README.md} explaining what
+goes in each subfolder. Every folder gets a \code{.toastmaker} marker file at
+its root (see \code{\link[=project_root]{project_root()}}).
+
+Before creating anything new, the tree is printed with new folders marked,
+and (in interactive sessions) you are asked to confirm. When all folders
+already exist, nothing is asked, so scripts can call \code{project_setup()} at
+the top every time.
+
+For projects with an \code{experiment_name}, you are offered a \code{README.md}
+template for the raw data folder and, once it holds files, a checksum
+manifest (see \code{\link[=data_manifest]{data_manifest()}}).
+
+Defaults for \code{root}, \code{home_base}, \code{grant}, \code{lab} and \code{type} come from
+\code{\link[=toastmaker_settings]{toastmaker_settings()}}. \code{home_base} must be set; \code{grant} and \code{lab} are
+skipped when unset (or \code{NULL}).
 }
 \examples{
 tmp <- tempfile()
-p <- project_setup(lab = "AC", project = "Initial_KOs",
+p <- project_setup("Initial_KOs", lab = "AC", home_base = "heiBOX",
                    experiment_name = "2025-04-28_growth",
-                   raw_subdir = "FC", root = tmp,
-                   auto_cleanup = FALSE, assign_global = FALSE)
+                   raw_subdir = "FC", root = tmp, confirm = FALSE,
+                   check_raw = FALSE, auto_cleanup = FALSE,
+                   assign_global = FALSE)
 p
+paper <- project_setup("2025_KO-screen", type = "paper", lab = "AC",
+                       home_base = "heiBOX", root = tmp, confirm = FALSE,
+                       auto_cleanup = FALSE, assign_global = FALSE)
+paper
 unlink(tmp, recursive = TRUE)
 }
 \seealso{
-\code{\link[=project_cleanup]{project_cleanup()}}, \code{\link[=project_snapshot]{project_snapshot()}}, \code{\link[=crumber]{crumber()}}
+\code{\link[=toastmaker_setup]{toastmaker_setup()}}, \code{\link[=project_cleanup]{project_cleanup()}}, \code{\link[=project_snapshot]{project_snapshot()}},
+\code{\link[=project_root]{project_root()}}, \code{\link[=crumber]{crumber()}}
 }

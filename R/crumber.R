@@ -8,6 +8,12 @@
 #' Object names can be given as bare names (`crumber(add.to.cookiejar = df)`),
 #' strings (`"df"`), or `c()` of either (`c(df, fit)`).
 #'
+#' `crumber()` is meant for freeing memory and decluttering during
+#' interactive work. It is not a substitute for a fresh R session: loaded
+#' packages, options, the working directory and the random seed all survive
+#' it. To check that a script is reproducible, restart R and run it top to
+#' bottom.
+#'
 #' @param do.gc Run [gc()] after removal (default `TRUE`).
 #' @param add.to.cookiejar Names of objects to protect. When given, nothing
 #'   is removed; only `core_objects` is updated.

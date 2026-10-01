@@ -38,6 +38,12 @@ Hidden objects (names starting with \code{.}) are never removed.
 \details{
 Object names can be given as bare names (\code{crumber(add.to.cookiejar = df)}),
 strings (\code{"df"}), or \code{c()} of either (\code{c(df, fit)}).
+
+\code{crumber()} is meant for freeing memory and decluttering during
+interactive work. It is not a substitute for a fresh R session: loaded
+packages, options, the working directory and the random seed all survive
+it. To check that a script is reproducible, restart R and run it top to
+bottom.
 }
 \examples{
 env <- new.env()

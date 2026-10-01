@@ -2,6 +2,11 @@
 
 S3method(print,cookiecutter)
 export(crumber)
+export(data_manifest)
+export(data_verify)
 export(project_cleanup)
+export(project_root)
 export(project_setup)
 export(project_snapshot)
+export(toastmaker_settings)
+export(toastmaker_setup)
