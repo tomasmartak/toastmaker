@@ -20,7 +20,8 @@
 #'   is set.
 #' * `grant`: grant or grouping folder. Unset by default, in which case it is
 #'   skipped in the path.
-#' * `lab`: default lab folder. Unset by default (skipped).
+#' * `lab`: default lab folder. Unset by default (skipped). Not asked by
+#'   [toastmaker_setup()]; set it here if you want one.
 #' * `type`: default folder layout for [project_setup()]: `"project"`
 #'   (default), `"paper"`, `"presentation"` or `"poster"`.
 #'
@@ -81,7 +82,7 @@ toastmaker_settings <- function(..., reset = FALSE) {
 #' Guided setup of toastmaker defaults
 #'
 #' Walks you through the settings used by [project_setup()] (root folder,
-#' base folder, grant, lab and default layout) and saves them. Press Enter to
+#' base folder, grant and default layout) and saves them. Press Enter to
 #' keep the value shown in brackets, or type `-` to clear an optional value.
 #' Runs automatically the first time [project_setup()] is used interactively
 #' without a `home_base`.
@@ -100,9 +101,12 @@ toastmaker_setup <- function() {
         "Press Enter to keep the value in [brackets]; type - to clear an optional value.\n\n",
         sep = "")
 
-    root <- .tm_prompt("Root folder that contains your base folder",
-                       cur("root"), optional = FALSE)
-    cat("  (", path.expand(root), ")\n", sep = "")
+    cat("Root folder: the existing folder on this computer that holds your base folder.\n",
+        "  Type a full path, e.g. ",
+        if (.Platform$OS.type == "windows") "C:/Users/me/Documents" else "/home/me/Documents",
+        ", or just ~ for your home/Documents folder.\n", sep = "")
+    root <- .tm_prompt("Root folder (full path, or ~)", cur("root"), optional = FALSE)
+    cat("  -> ", path.expand(root), "\n", sep = "")
 
     repeat {
         home_base <- .tm_prompt("Base folder inside the root, e.g. your synced cloud folder (required)",
@@ -114,7 +118,6 @@ toastmaker_setup <- function() {
     }
 
     grant <- .tm_prompt("Grant folder (Enter with no value = none)", cur("grant"))
-    lab <- .tm_prompt("Default lab folder (Enter with no value = none)", cur("lab"))
 
     types <- .tm_types
     cat("Default folder layout:\n")
@@ -131,9 +134,9 @@ toastmaker_setup <- function() {
     }
     type <- ans
 
-    cfg <- list(root = root, home_base = home_base, grant = grant, lab = lab,
+    cfg <- list(root = root, home_base = home_base, grant = grant,
                 type = type)
-    base <- do.call(.tm_path, unname(c(list(path.expand(root)), cfg[c("home_base", "grant", "lab")])))
+    base <- do.call(.tm_path, unname(c(list(path.expand(root)), cfg[c("home_base", "grant")])))
     cat("\nSummary\n")
     for (k in names(cfg)) cat(sprintf("  %-10s %s\n", k, cfg[[k]] %||% "<none>"))
     cat("New folders will be created under:\n")
@@ -222,6 +225,14 @@ toastmaker_setup <- function() {
     stop("No base folder set. Run toastmaker_setup(), or ",
          "toastmaker_settings(home_base = \"...\"), or pass home_base = \"...\".",
          call. = FALSE)
+}
+
+# Grant and lab are each optional. When the caller sets one explicitly, the
+# other is not filled in from the saved settings (so no unwanted lab appears).
+.tm_grant_lab <- function(grant, lab, grant_missing, lab_missing) {
+    if (grant_missing && !lab_missing) grant <- NULL
+    if (lab_missing && !grant_missing) lab <- NULL
+    list(grant = .tm_clean(grant), lab = .tm_clean(lab))
 }
 
 # Prompt with a current value; Enter keeps it, "-" clears it (optional only).

@@ -22,7 +22,7 @@ library(toastmaker)
 toastmaker_setup()
 ```
 
-It asks for your root folder, your base folder (e.g. a synced cloud folder such as `heiBOX`; required), an optional grant and lab, and which layout `project_setup()` should create by default. View or change single settings later with `toastmaker_settings()`:
+It asks for your root folder, your base folder (e.g. a synced cloud folder such as `heiBOX`; required), an optional grant, and which layout `project_setup()` should create by default. View or change single settings later with `toastmaker_settings()`:
 
 ``` r
 toastmaker_settings()                    # show current settings

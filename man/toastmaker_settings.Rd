@@ -38,7 +38,8 @@ such as \code{"heiBOX"}. \strong{Required}; \code{\link[=project_setup]{project_
 is set.
 \item \code{grant}: grant or grouping folder. Unset by default, in which case it is
 skipped in the path.
-\item \code{lab}: default lab folder. Unset by default (skipped).
+\item \code{lab}: default lab folder. Unset by default (skipped). Not asked by
+\code{\link[=toastmaker_setup]{toastmaker_setup()}}; set it here if you want one.
 \item \code{type}: default folder layout for \code{\link[=project_setup]{project_setup()}}: \code{"project"}
 (default), \code{"paper"}, \code{"presentation"} or \code{"poster"}.
 }

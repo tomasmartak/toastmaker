@@ -44,9 +44,9 @@ or \code{"public/GEO_GSE12345"} (see \code{\link[=dataset_setup]{dataset_setup()
 returned in \verb{$datasets}, and the link is recorded in both folders'
 \code{.toastmaker} markers.}
 
-\item{lab}{Lab folder, e.g. \code{"AC"}.}
+\item{lab}{Lab folder, e.g. \code{"AC"}. Optional.}
 
-\item{grant}{Grant or grouping folder.}
+\item{grant}{Grant or grouping folder. Optional.}
 
 \item{home_base}{Base folder inside \code{root}, e.g. a synced cloud folder.}
 
@@ -100,7 +100,10 @@ manifest (see \code{\link[=data_manifest]{data_manifest()}}).
 
 Defaults for \code{root}, \code{home_base}, \code{grant}, \code{lab} and \code{type} come from
 \code{\link[=toastmaker_settings]{toastmaker_settings()}}. \code{home_base} must be set; \code{grant} and \code{lab} are
-skipped when unset (or \code{NULL}).
+skipped when unset (or \code{NULL}). If you pass \code{grant} or \code{lab} yourself, the
+other one is \emph{not} taken from the settings, so
+\code{project_setup("X", grant = "G")} gives no lab folder even if a default lab
+is saved. Pass both to use both, or neither to use the saved defaults.
 }
 \examples{
 tmp <- tempfile()

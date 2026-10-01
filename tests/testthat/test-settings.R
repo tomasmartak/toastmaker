@@ -35,8 +35,8 @@ test_that("the setup wizard saves the answers", {
     local_tm_settings(home_base = NULL)
     root <- local_root()
     dir.create(file.path(root, "Cloud"))
-    # root, home_base, grant, lab, type, save
-    local_answers(c(root, "Cloud", "GRK1", "", "2", "y"))
+    # root, home_base, grant, type, save
+    local_answers(c(root, "Cloud", "GRK1", "2", "y"))
     utils::capture.output(toastmaker_setup())
     expect_equal(.tm_setting("home_base"), "Cloud")
     expect_equal(.tm_setting("grant"), "GRK1")
@@ -48,8 +48,8 @@ test_that("project_setup starts the wizard when home_base is unset", {
     local_tm_settings(home_base = NULL)
     root <- local_root()
     dir.create(file.path(root, "Cloud"))
-    # wizard: root, home_base, grant, lab, type, save; then confirm folders
-    local_answers(c(root, "Cloud", "", "", "", "y", "y"))
+    # wizard: root, home_base, grant, type, save; then confirm folders
+    local_answers(c(root, "Cloud", "", "", "y", "y"))
     utils::capture.output(
         p <- project_setup("KO", root = root, assign_global = FALSE,
                            auto_cleanup = FALSE, confirm = TRUE)

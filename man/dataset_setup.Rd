@@ -25,9 +25,9 @@ omitted, the dataset containing the working directory is used.}
 \item{source}{\code{"public"} (downloaded from elsewhere) or \code{"internal"}
 (generated in-house).}
 
-\item{lab}{Lab folder, e.g. \code{"AC"}.}
+\item{lab}{Lab folder, e.g. \code{"AC"}. Optional.}
 
-\item{grant}{Grant or grouping folder.}
+\item{grant}{Grant or grouping folder. Optional.}
 
 \item{home_base}{Base folder inside \code{root}, e.g. a synced cloud folder.}
 
