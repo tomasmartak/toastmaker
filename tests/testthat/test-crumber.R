@@ -32,6 +32,13 @@ test_that("consume.cookie removes protection", {
     expect_false(exists("keep", envir = env))
 })
 
-test_that("crumber errors without core_objects", {
-    expect_error(crumber(env = new.env()), "No 'core_objects'")
+test_that("crumber works without core_objects and keeps toast objects", {
+    env <- new.env()
+    env$toast <- structure(list(bd = "x"), class = "toast")
+    env$junk <- 1
+    expect_message(crumber(env = env, do.gc = FALSE), "removed 1")
+    expect_equal(ls(env), "toast")
+
+    crumber(add.to.cookiejar = df, env = env)
+    expect_equal(env$core_objects, "df")
 })

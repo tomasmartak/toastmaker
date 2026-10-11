@@ -1,11 +1,12 @@
 # Internal helpers -------------------------------------------------------------
 
 # Session state: directories created by project_setup() that are candidates
-# for cleanup, and whether the exit hook is registered.
+# for cleanup, whether the exit hook is registered, and which offers/hints
+# were already shown.
 .tm_state <- new.env(parent = emptyenv())
 .tm_state$dirs <- character(0L)
 .tm_state$hooked <- FALSE
-.tm_state$declined <- character(0L) # README/manifest offers declined this session
+.tm_state$seen <- character(0L)
 
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
@@ -86,11 +87,35 @@
 .tm_interactive <- function() interactive()
 .tm_readline <- function(prompt) readline(prompt)
 
-# Ask a yes/no question; Enter gives `default`.
+# Ask a yes/no question; Enter gives `default`. Only the last line of a
+# multi-line question goes to readline(), whose prompt does not wrap, so put
+# long paths on lines of their own.
 .tm_yes <- function(question, default = TRUE) {
-    ans <- tolower(trimws(.tm_readline(paste0(question, if (default) " [Y/n] " else " [y/N] "))))
+    lines <- strsplit(question, "\n", fixed = TRUE)[[1L]]
+    n <- length(lines)
+    if (n > 1L) cat(paste0(lines[-n], "\n"), sep = "")
+    ans <- tolower(trimws(.tm_readline(paste0(lines[n], if (default) " [Y/n] " else " [y/N] "))))
     if (!nzchar(ans)) return(default)
     startsWith(ans, "y")
+}
+
+# TRUE the first time `key` is seen this session, so that offers and hints
+# are not repeated.
+.tm_once <- function(key) {
+    if (key %in% .tm_state$seen) return(FALSE)
+    .tm_state$seen <- c(.tm_state$seen, key)
+    TRUE
+}
+
+# Single-record DCF files (.toastmaker markers, the settings file) as a list.
+.tm_read_dcf <- function(f) {
+    m <- read.dcf(f)
+    if (nrow(m) == 0L) list() else as.list(m[1L, ])
+}
+
+.tm_write_dcf <- function(fields, f) {
+    fields <- Filter(Negate(is.null), fields)
+    write.dcf(matrix(unlist(fields), nrow = 1L, dimnames = list(NULL, names(fields))), f)
 }
 
 # Draw the folders `dirs` (and their parents) below `bd` as a tree, marking

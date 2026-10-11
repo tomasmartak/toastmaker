@@ -42,9 +42,10 @@ folder (default \code{TRUE}; prompts only in interactive sessions).}
 that are still empty are removed when the R session exits.}
 
 \item{assign_global}{If \code{TRUE}, also assigns \code{bd}, each \verb{dir_*} path,
-\code{dir_list} and \code{core_objects} (used by \code{\link[=crumber]{crumber()}}) into the calling
-environment. Default \code{FALSE}: keep the result, e.g.
-\code{toast <- project_setup("X")}, and use \code{toast$dir_raw}.}
+\code{dir_list} into the calling environment, and protects them from
+\code{\link[=crumber]{crumber()}} via \code{core_objects}. Default \code{FALSE}: keep the result, e.g.
+\code{toast <- project_setup("X")}, and use \code{toast$dir_raw} (\code{crumber()}
+keeps \code{toast} either way).}
 }
 \value{
 Invisibly, a \code{"toast"} object with \code{bd}, \code{dir_raw},

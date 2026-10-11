@@ -56,3 +56,13 @@ test_that("declined offers are not repeated in the session", {
     local_answers(character(0))  # any prompt would fail
     utils::capture.output(do.call(project_setup, args))
 })
+
+test_that("long prompts put the path on its own line, outside readline()", {
+    seen <- NULL
+    local_mocked_bindings(.tm_readline = function(prompt) { seen <<- prompt; "y" },
+                          .package = "toastmaker")
+    out <- utils::capture.output(ans <- .tm_yes("No README.md in\n  /a/long/path\nCreate one?"))
+    expect_true(ans)
+    expect_equal(out, c("No README.md in", "  /a/long/path"))
+    expect_equal(seen, "Create one? [Y/n] ")
+})
