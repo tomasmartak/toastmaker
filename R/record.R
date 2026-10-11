@@ -57,8 +57,7 @@ project_record <- function(where = ".") {
 # Remind (once per session per folder) when scripts exist but renv.lock is
 # missing or older than the newest script.
 .tm_renv_hint <- function(bd) {
-    key <- paste0("renv:", bd)
-    if (key %in% .tm_state$declined) return(invisible(NULL))
+    if (paste0("renv:", bd) %in% .tm_state$seen) return(invisible(NULL))
     scripts <- list.files(file.path(bd, "scripts"), pattern = "\\.(R|r|Rmd|rmd|qmd)$",
                           recursive = TRUE, full.names = TRUE)
     if (length(scripts) == 0L) return(invisible(NULL))
@@ -70,8 +69,8 @@ project_record <- function(where = ".") {
     } else {
         return(invisible(NULL))
     }
+    .tm_once(paste0("renv:", bd))
     .tm_say(msg, ": run project_record() to update renv.lock.", style = "3")
-    .tm_state$declined <- c(.tm_state$declined, key)
     invisible(NULL)
 }
 

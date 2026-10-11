@@ -40,17 +40,15 @@
 #' }
 toastmaker_settings <- function(..., reset = FALSE) {
     new <- list(...)
-    if (length(new) > 0L) {
-        nms <- names(new)
-        if (is.null(nms) || any(!nzchar(nms))) {
-            stop("Settings must be named, e.g. toastmaker_settings(grant = \"X\").",
-                 call. = FALSE)
-        }
-        bad <- setdiff(nms, .tm_keys)
-        if (length(bad) > 0L) {
-            stop("Unknown setting(s): ", paste(bad, collapse = ", "),
-                 ". Available: ", paste(.tm_keys, collapse = ", "), ".", call. = FALSE)
-        }
+    nms <- names(new) %||% rep("", length(new))
+    if (!all(nzchar(nms))) {
+        stop("Settings must be named, e.g. toastmaker_settings(grant = \"X\").",
+             call. = FALSE)
+    }
+    bad <- setdiff(nms, .tm_keys)
+    if (length(bad) > 0L) {
+        stop("Unknown setting(s): ", paste(bad, collapse = ", "),
+             ". Available: ", paste(.tm_keys, collapse = ", "), ".", call. = FALSE)
     }
 
     if (isTRUE(reset)) unlink(.tm_config_path())
@@ -95,8 +93,6 @@ toastmaker_setup <- function() {
         stop("toastmaker_setup() needs an interactive session; use ",
              "toastmaker_settings(home_base = ...) instead.", call. = FALSE)
     }
-    cur <- function(k) .tm_setting(k)
-
     cat("\ntoastmaker setup\n",
         "Press Enter to keep the value in [brackets]; type - to clear an optional value.\n\n",
         sep = "")
@@ -105,42 +101,39 @@ toastmaker_setup <- function() {
         "  Type a full path, e.g. ",
         if (.Platform$OS.type == "windows") "C:/Users/me/Documents" else "/home/me/Documents",
         ", or just ~ for your home/Documents folder.\n", sep = "")
-    root <- .tm_prompt("Root folder (full path, or ~)", cur("root"), optional = FALSE)
+    root <- .tm_prompt("Root folder (full path, or ~)", .tm_setting("root"), optional = FALSE)
     cat("  -> ", path.expand(root), "\n", sep = "")
 
     repeat {
         home_base <- .tm_prompt("Base folder inside the root, e.g. your synced cloud folder (required)",
-                                cur("home_base") %||% "heiBOX", optional = FALSE)
+                                .tm_setting("home_base") %||% "heiBOX", optional = FALSE)
         hb_path <- file.path(path.expand(root), home_base)
         if (dir.exists(hb_path) ||
-            .tm_yes(paste0("  ", hb_path, " does not exist yet. Use it anyway?"),
+            .tm_yes(paste0("  ", hb_path, "\n  does not exist yet. Use it anyway?"),
                     default = FALSE)) break
     }
 
-    grant <- .tm_prompt("Grant folder (Enter with no value = none)", cur("grant"))
+    grant <- .tm_prompt("Grant folder (Enter with no value = none)", .tm_setting("grant"))
 
-    types <- .tm_types
     cat("Default folder layout:\n")
-    for (i in seq_along(types)) {
-        cat(sprintf("  %d. %-13s -> %s/\n", i, types[i], .tm_layouts[[types[i]]]$top))
+    for (i in seq_along(.tm_types)) {
+        cat(sprintf("  %d. %-13s -> %s/\n", i, .tm_types[i], .tm_layouts[[.tm_types[i]]]$top))
     }
     repeat {
-        ans <- .tm_prompt("Choose a number or name", cur("type"), optional = FALSE)
-        if (grepl("^[0-9]+$", ans) && as.integer(ans) %in% seq_along(types)) {
-            ans <- types[as.integer(ans)]
+        type <- .tm_prompt("Choose a number or name", .tm_setting("type"), optional = FALSE)
+        if (grepl("^[0-9]+$", type) && as.integer(type) %in% seq_along(.tm_types)) {
+            type <- .tm_types[as.integer(type)]
         }
-        if (ans %in% types) break
-        cat("  Please choose one of: ", paste(types, collapse = ", "), "\n", sep = "")
+        if (type %in% .tm_types) break
+        cat("  Please choose one of: ", paste(.tm_types, collapse = ", "), "\n", sep = "")
     }
-    type <- ans
 
-    cfg <- list(root = root, home_base = home_base, grant = grant,
-                type = type)
-    base <- do.call(.tm_path, unname(c(list(path.expand(root)), cfg[c("home_base", "grant")])))
+    cfg <- list(root = root, home_base = home_base, grant = grant, type = type)
+    base <- .tm_path(path.expand(root), home_base, grant)
     cat("\nSummary\n")
     for (k in names(cfg)) cat(sprintf("  %-10s %s\n", k, cfg[[k]] %||% "<none>"))
     cat("New folders will be created under:\n")
-    for (t in types) cat("  ", file.path(base, .tm_layouts[[t]]$top), "/\n", sep = "")
+    for (t in .tm_types) cat("  ", file.path(base, .tm_layouts[[t]]$top), "/\n", sep = "")
 
     if (!.tm_yes("\nSave these settings?")) {
         cat("Nothing saved.\n")
@@ -166,10 +159,7 @@ toastmaker_setup <- function() {
 .tm_read_config <- function() {
     f <- .tm_config_path()
     if (!file.exists(f)) return(list())
-    m <- read.dcf(f)
-    if (nrow(m) == 0L) return(list())
-    cfg <- as.list(m[1L, ])
-    Filter(Negate(is.null), lapply(cfg, .tm_clean))
+    Filter(Negate(is.null), lapply(.tm_read_dcf(f), .tm_clean))
 }
 
 .tm_write_config <- function(cfg) {
@@ -177,11 +167,10 @@ toastmaker_setup <- function() {
     f <- .tm_config_path()
     if (length(cfg) == 0L) {
         unlink(f)
-        return(invisible(f))
+    } else {
+        dir.create(dirname(f), recursive = TRUE, showWarnings = FALSE)
+        .tm_write_dcf(cfg, f)
     }
-    dir.create(dirname(f), recursive = TRUE, showWarnings = FALSE)
-    m <- matrix(unlist(cfg), nrow = 1L, dimnames = list(NULL, names(cfg)))
-    write.dcf(m, f)
     invisible(f)
 }
 

@@ -21,7 +21,6 @@
     ),
     paper = list(
         top  = "Papers",
-        figure_example = "Fig1_<short-title>",
         dirs = function(bd, a) list(
             dir_manuscript    = file.path(bd, "manuscript"),
             dir_figures       = file.path(bd, "figures"),
@@ -43,7 +42,6 @@
     ),
     presentation = list(
         top  = "Presentations",
-        figure_example = "Slide03_<short-title>",
         dirs = function(bd, a) list(
             dir_slides  = file.path(bd, "slides"),
             dir_figures = file.path(bd, "figures"),
@@ -61,7 +59,6 @@
     ),
     poster = list(
         top  = "Posters",
-        figure_example = "Panel1_<short-title>",
         dirs = function(bd, a) list(
             dir_poster   = file.path(bd, "poster"),
             dir_abstract = file.path(bd, "abstract"),

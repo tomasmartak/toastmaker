@@ -13,8 +13,8 @@
 #'
 #' Papers, presentations and posters also get a `README.md` explaining what
 #' goes in each subfolder; add figure folders to them with [figure_setup()].
-#' Shared or public data lives in `Datasets/` (see [dataset_setup()]). Every folder gets a `.toastmaker` marker file at
-#' its root (see [project_root()]).
+#' Shared or public data lives in `Datasets/` (see [dataset_setup()]). Every
+#' folder gets a `.toastmaker` marker file at its root (see [project_root()]).
 #'
 #' Before creating anything new, the tree is printed with new folders marked,
 #' and (in interactive sessions) you are asked to confirm. When all folders
@@ -58,14 +58,16 @@
 #' @param auto_cleanup If `TRUE` (default), directories created by this call
 #'   that are still empty are removed when the R session exits.
 #' @param assign_global If `TRUE`, also assigns `bd`, each `dir_*` path,
-#'   `dir_list` and `core_objects` (used by [crumber()]) into the calling
-#'   environment. Default `FALSE`: keep the result, e.g.
-#'   `toast <- project_setup("X")`, and use `toast$dir_raw`.
+#'   `dir_list` into the calling environment, and protects them from
+#'   [crumber()] via `core_objects`. Default `FALSE`: keep the result, e.g.
+#'   `toast <- project_setup("X")`, and use `toast$dir_raw` (`crumber()`
+#'   keeps `toast` either way).
 #'
 #' @return Invisibly, a named list of class `"toast"` with `bd` (the
 #'   folder root), `dir_home` (the `<root>/<home_base>` folder, e.g.
 #'   `C:/Users/abc/Documents/heiBOX`), one `dir_*` element per subfolder and,
-#'   if requested, `datasets`; or `NULL` if you declined to create it. Its `type` attribute holds the layout.
+#'   if requested, `datasets`; or `NULL` if you declined to create it. Its
+#'   `type` attribute holds the layout.
 #' @seealso [toastmaker_setup()], [dataset_setup()], [figure_setup()],
 #'   [project_record()], [project_cleanup()], [project_snapshot()],
 #'   [project_root()], [crumber()]
@@ -77,7 +79,7 @@
 #'                    raw_subdir = "FC", root = tmp, confirm = FALSE,
 #'                    check_raw = FALSE, auto_cleanup = FALSE,
 #'                    assign_global = FALSE)
-#' p
+#' toast
 #' paper <- project_setup("2025_KO-screen", type = "paper", lab = "AC",
 #'                        home_base = "heiBOX", root = tmp, confirm = FALSE,
 #'                        auto_cleanup = FALSE, assign_global = FALSE)
@@ -99,8 +101,6 @@ project_setup <- function(project,
                           auto_cleanup    = TRUE,
                           assign_global   = FALSE) {
     gl <- .tm_grant_lab(grant, lab, missing(grant), missing(lab))
-    grant <- gl$grant
-    lab <- gl$lab
     if (!is.null(type)) {
         type <- .tm_check_type(type)
     } else if (!missing(project)) {
@@ -111,7 +111,7 @@ project_setup <- function(project,
               args = list(experiment_name = experiment_name,
                           analysis_subdir = analysis_subdir,
                           raw_subdir = raw_subdir, img_subdir = img_subdir),
-              datasets = datasets, lab = lab, grant = grant, home_base = home_base,
+              datasets = datasets, lab = gl$lab, grant = gl$grant, home_base = home_base,
               root = root, confirm = confirm, check_raw = check_raw,
               auto_cleanup = auto_cleanup, assign_global = assign_global,
               env = parent.frame())
@@ -135,8 +135,9 @@ print.toast <- function(x, ...) {
 #'
 #' @param dirs Directories to inspect. May be a character vector or a
 #'   `"toast"` object from [project_setup()] (its subdirectories are
-#'   checked; the project root `bd` is left alone). If `NULL` (default), uses the directories created by
-#'   `project_setup()` in this session with `auto_cleanup = TRUE`.
+#'   checked; the project root `bd` is left alone). If `NULL` (default),
+#'   uses the directories created by `project_setup()` in this session with
+#'   `auto_cleanup = TRUE`.
 #' @param verbose Print what is removed or kept (default `TRUE`).
 #'
 #' @return Invisibly, the paths that were removed.
@@ -205,16 +206,13 @@ project_snapshot <- function(cc = NULL) {
     }
 
     dirs <- .tm_dirs(cc)
-    info <- lapply(dirs, function(d) {
-        files <- list.files(d, recursive = TRUE, all.files = TRUE, full.names = TRUE)
-        c(n_files = length(files), bytes = sum(file.size(files)))
-    })
+    files <- lapply(dirs, list.files, recursive = TRUE, all.files = TRUE, full.names = TRUE)
     out <- data.frame(
         dir     = names(dirs),
         path    = unname(dirs),
         exists  = dir.exists(dirs),
-        n_files = vapply(info, `[[`, numeric(1L), "n_files"),
-        bytes   = vapply(info, `[[`, numeric(1L), "bytes"),
+        n_files = as.numeric(lengths(files)),
+        bytes   = vapply(files, function(f) sum(file.size(f)), numeric(1L)),
         row.names = NULL
     )
 

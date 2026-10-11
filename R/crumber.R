@@ -1,9 +1,15 @@
 #' Clear the workspace, keeping protected objects
 #'
-#' Removes every object from `env` whose name is not listed in
-#' `core_objects`. [project_setup()] creates `core_objects` with the project
-#' paths; add your own long-lived objects to it with `add.to.cookiejar`.
-#' Hidden objects (names starting with `.`) are never removed.
+#' Removes every object from `env` except:
+#'
+#' * objects named in `core_objects` (add to it with `add.to.cookiejar`),
+#' * results of [project_setup()] and [dataset_setup()] (objects of class
+#'   `"toast"`), so `toast <- project_setup("X")` survives,
+#' * hidden objects (names starting with `.`).
+#'
+#' `core_objects` is created by the first `add.to.cookiejar`, or by
+#' `project_setup(..., assign_global = TRUE)`, which protects the paths it
+#' assigns.
 #'
 #' Object names can be given as bare names (`crumber(add.to.cookiejar = df)`),
 #' strings (`"df"`), or `c()` of either (`c(df, fit)`).
@@ -27,31 +33,27 @@
 #' @export
 #' @examples
 #' env <- new.env()
-#' assign("core_objects", "keep_me", envir = env)
 #' assign("keep_me", 1, envir = env)
 #' assign("scratch", 2, envir = env)
-#' crumber(add.to.cookiejar = scratch, env = env) # protect `scratch` too
-#' crumber(consume.cookie = "scratch", env = env) # ...and unprotect it again
-#' crumber(env = env, do.gc = FALSE)              # removes `scratch`
+#' crumber(add.to.cookiejar = c(keep_me, scratch), env = env) # protect both
+#' crumber(consume.cookie = "scratch", env = env)  # ...and unprotect `scratch`
+#' crumber(env = env, do.gc = FALSE)               # removes `scratch`
 #' ls(env)
 crumber <- function(do.gc = TRUE, add.to.cookiejar = NULL, consume.cookie = NULL,
                     env = globalenv(), notify = FALSE) {
     add <- .tm_names(substitute(add.to.cookiejar))
     drop <- .tm_names(substitute(consume.cookie))
+    core <- get0("core_objects", envir = env, inherits = FALSE) %||% character(0L)
 
-    if (!exists("core_objects", envir = env, inherits = FALSE)) {
-        stop("No 'core_objects' found: run project_setup() first, or create ",
-             "'core_objects' (a character vector of names to keep).", call. = FALSE)
-    }
-    core <- get("core_objects", envir = env, inherits = FALSE)
-
-    if (!is.null(add) || !is.null(drop)) {
+    if (length(add) > 0L || length(drop) > 0L) {
         core <- setdiff(union(core, add), drop)
         assign("core_objects", core, envir = env)
         return(invisible(core))
     }
 
-    surplus <- setdiff(ls(envir = env), c(core, "core_objects"))
+    objs <- ls(envir = env)
+    toasts <- objs[vapply(objs, function(o) inherits(get(o, envir = env), "toast"), NA)]
+    surplus <- setdiff(objs, c(core, toasts, "core_objects"))
     rm(list = surplus, envir = env)
     message("crumber: removed ", length(surplus), " object(s)",
             if (length(surplus)) paste0(": ", paste(surplus, collapse = ", ")))

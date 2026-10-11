@@ -53,10 +53,8 @@ dataset_setup <- function(name,
                           assign_global = FALSE) {
     source <- match.arg(source)
     gl <- .tm_grant_lab(grant, lab, missing(grant), missing(lab))
-    grant <- gl$grant
-    lab <- gl$lab
     .tm_setup(type = "dataset", name = if (missing(name)) NULL else name,
-              args = list(source = source), datasets = NULL, lab = lab, grant = grant,
+              args = list(source = source), datasets = NULL, lab = gl$lab, grant = gl$grant,
               home_base = home_base, root = root, confirm = confirm,
               check_raw = check_raw, auto_cleanup = auto_cleanup,
               assign_global = assign_global, env = parent.frame())

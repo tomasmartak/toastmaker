@@ -40,10 +40,7 @@ project_root <- function(path = ".") {
     }
 }
 
-.tm_read_marker <- function(bd) {
-    m <- read.dcf(file.path(bd, .tm_marker_name))
-    as.list(m[1L, ])
-}
+.tm_read_marker <- function(bd) .tm_read_dcf(file.path(bd, .tm_marker_name))
 
 # Write the marker if it is missing. `new` says whether `bd` was created by
 # this call (then the date is the creation date) or already existed.
@@ -73,9 +70,4 @@ project_root <- function(path = ".") {
     fields[[field]] <- paste(c(old, new), collapse = ", ")
     .tm_write_dcf(fields, f)
     invisible(TRUE)
-}
-
-.tm_write_dcf <- function(fields, f) {
-    fields <- Filter(Negate(is.null), fields)
-    write.dcf(matrix(unlist(fields), nrow = 1L, dimnames = list(NULL, names(fields))), f)
 }

@@ -30,12 +30,20 @@ Invisibly, the names of removed objects, or the updated
 \code{core_objects} when adding/removing protection.
 }
 \description{
-Removes every object from \code{env} whose name is not listed in
-\code{core_objects}. \code{\link[=project_setup]{project_setup()}} creates \code{core_objects} with the project
-paths; add your own long-lived objects to it with \code{add.to.cookiejar}.
-Hidden objects (names starting with \code{.}) are never removed.
+Removes every object from \code{env} except:
 }
 \details{
+\itemize{
+\item objects named in \code{core_objects} (add to it with \code{add.to.cookiejar}),
+\item results of \code{\link[=project_setup]{project_setup()}} and \code{\link[=dataset_setup]{dataset_setup()}} (objects of class
+\code{"toast"}), so \code{toast <- project_setup("X")} survives,
+\item hidden objects (names starting with \code{.}).
+}
+
+\code{core_objects} is created by the first \code{add.to.cookiejar}, or by
+\code{project_setup(..., assign_global = TRUE)}, which protects the paths it
+assigns.
+
 Object names can be given as bare names (\code{crumber(add.to.cookiejar = df)}),
 strings (\code{"df"}), or \code{c()} of either (\code{c(df, fit)}).
 
@@ -47,11 +55,10 @@ bottom.
 }
 \examples{
 env <- new.env()
-assign("core_objects", "keep_me", envir = env)
 assign("keep_me", 1, envir = env)
 assign("scratch", 2, envir = env)
-crumber(add.to.cookiejar = scratch, env = env) # protect `scratch` too
-crumber(consume.cookie = "scratch", env = env) # ...and unprotect it again
-crumber(env = env, do.gc = FALSE)              # removes `scratch`
+crumber(add.to.cookiejar = c(keep_me, scratch), env = env) # protect both
+crumber(consume.cookie = "scratch", env = env)  # ...and unprotect `scratch`
+crumber(env = env, do.gc = FALSE)               # removes `scratch`
 ls(env)
 }

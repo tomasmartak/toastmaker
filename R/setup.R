@@ -20,7 +20,7 @@
         type <- marker$Type
         name <- marker$Name %||% basename(bd)
         home <- .tm_base(bd, type)
-        for (f in c(marker$Lab, marker$Grant)) if (!is.na(f)) home <- dirname(home)
+        for (f in c(marker$Lab, marker$Grant)) home <- dirname(home)
         if (identical(type, "dataset")) args$source <- marker$Source
     } else {
         if (!is.character(name) || length(name) != 1L || !nzchar(name)) {
@@ -101,11 +101,10 @@
     if (isTRUE(assign_global)) {
         list2env(unclass(cc), envir = env)
         assign("dir_list", cc, envir = env)
-        protected <- c(names(cc), "dir_list", "core_objects")
-        if (exists("core_objects", envir = env, inherits = FALSE)) {
-            protected <- union(get("core_objects", envir = env), protected)
-        }
-        assign("core_objects", protected, envir = env)
+        assign("core_objects",
+               union(get0("core_objects", envir = env, inherits = FALSE),
+                     c(names(cc), "dir_list")),
+               envir = env)
     }
 
     if (isTRUE(auto_cleanup) && length(created) > 0L) {

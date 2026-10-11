@@ -97,7 +97,7 @@ project_record("Proj1") # write renv.lock (R and package versions used in script
 
 ### Workspace
 
-`crumber()` removes everything from the workspace except protected objects. It needs `project_setup(..., assign_global = TRUE)` (or your own `core_objects`).
+`crumber()` removes everything from the workspace except protected objects: those in `core_objects`, and any `toast` returned by `project_setup()`.
 
 ``` r
 crumber(add.to.cookiejar = c(df, fit))   # protect

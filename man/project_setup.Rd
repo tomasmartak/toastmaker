@@ -61,15 +61,17 @@ folder (default \code{TRUE}; prompts only in interactive sessions).}
 that are still empty are removed when the R session exits.}
 
 \item{assign_global}{If \code{TRUE}, also assigns \code{bd}, each \verb{dir_*} path,
-\code{dir_list} and \code{core_objects} (used by \code{\link[=crumber]{crumber()}}) into the calling
-environment. Default \code{FALSE}: keep the result, e.g.
-\code{toast <- project_setup("X")}, and use \code{toast$dir_raw}.}
+\code{dir_list} into the calling environment, and protects them from
+\code{\link[=crumber]{crumber()}} via \code{core_objects}. Default \code{FALSE}: keep the result, e.g.
+\code{toast <- project_setup("X")}, and use \code{toast$dir_raw} (\code{crumber()}
+keeps \code{toast} either way).}
 }
 \value{
 Invisibly, a named list of class \code{"toast"} with \code{bd} (the
 folder root), \code{dir_home} (the \verb{<root>/<home_base>} folder, e.g.
 \verb{C:/Users/abc/Documents/heiBOX}), one \verb{dir_*} element per subfolder and,
-if requested, \code{datasets}; or \code{NULL} if you declined to create it. Its \code{type} attribute holds the layout.
+if requested, \code{datasets}; or \code{NULL} if you declined to create it. Its
+\code{type} attribute holds the layout.
 }
 \description{
 Creates a folder tree under
@@ -88,8 +90,8 @@ depends on \code{type}:
 
 Papers, presentations and posters also get a \code{README.md} explaining what
 goes in each subfolder; add figure folders to them with \code{\link[=figure_setup]{figure_setup()}}.
-Shared or public data lives in \verb{Datasets/} (see \code{\link[=dataset_setup]{dataset_setup()}}). Every folder gets a \code{.toastmaker} marker file at
-its root (see \code{\link[=project_root]{project_root()}}).
+Shared or public data lives in \verb{Datasets/} (see \code{\link[=dataset_setup]{dataset_setup()}}). Every
+folder gets a \code{.toastmaker} marker file at its root (see \code{\link[=project_root]{project_root()}}).
 
 Before creating anything new, the tree is printed with new folders marked,
 and (in interactive sessions) you are asked to confirm. When all folders
@@ -114,7 +116,7 @@ toast <- project_setup("Initial_KOs", lab = "AC", home_base = "heiBOX",
                    raw_subdir = "FC", root = tmp, confirm = FALSE,
                    check_raw = FALSE, auto_cleanup = FALSE,
                    assign_global = FALSE)
-p
+toast
 paper <- project_setup("2025_KO-screen", type = "paper", lab = "AC",
                        home_base = "heiBOX", root = tmp, confirm = FALSE,
                        auto_cleanup = FALSE, assign_global = FALSE)
