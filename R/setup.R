@@ -3,8 +3,8 @@
 # `name` is NULL when the caller should be found from the working directory
 # via its .toastmaker marker. `args` holds the layout-specific arguments
 # (experiment_name, raw_subdir, ... for projects; source for datasets).
-.tm_setup <- function(type, name, args, datasets, lab, grant, home_base, root,
-                      confirm, check_raw, auto_cleanup, assign_global, env) {
+.tm_setup <- function(type, name, args, datasets, datasets_dir, lab, grant, home_base,
+                      root, confirm, check_raw, auto_cleanup, assign_global, env) {
     if (is.null(name)) {
         bd <- .tm_find_marker(".")
         if (is.null(bd)) {
@@ -21,15 +21,25 @@
         name <- marker$Name %||% basename(bd)
         home <- .tm_base(bd, type)
         for (f in c(marker$Lab, marker$Grant)) home <- dirname(home)
-        if (identical(type, "dataset")) args$source <- marker$Source
+        if (identical(type, "dataset")) {
+            args$source <- marker$Source
+            ds_dir <- dirname(dirname(bd))
+        } else {
+            ds_dir <- .tm_datasets_dir(datasets_dir, .tm_base(bd, type))
+        }
     } else {
         if (!is.character(name) || length(name) != 1L || !nzchar(name)) {
             stop("The name must be a single non-empty string.", call. = FALSE)
         }
         home_base <- .tm_require_home_base(home_base)
         home <- .tm_path(path.expand(root), home_base)
-        bd <- .tm_path(home, grant, lab,
-                       .tm_layouts[[type]]$top, args$source, name)
+        base <- .tm_path(home, grant, lab)
+        ds_dir <- .tm_datasets_dir(datasets_dir, base)
+        bd <- if (identical(type, "dataset")) {
+            .tm_path(ds_dir, args$source, name)
+        } else {
+            .tm_path(base, .tm_layouts[[type]]$top, name)
+        }
     }
     layout <- .tm_layouts[[type]]
 
@@ -48,9 +58,7 @@
 
     cc <- structure(c(list(bd = bd, dir_home = home), layout$dirs(bd, args)),
                     class = "toast", type = type)
-    if (!is.null(datasets)) {
-        cc$datasets <- .tm_resolve_datasets(datasets, .tm_base(bd, type))
-    }
+    used <- if (!is.null(datasets)) .tm_resolve_datasets(datasets, ds_dir)
     dirs <- .tm_dirs(cc)
 
     # Show what will be created and, if asked to, wait for confirmation.
@@ -95,7 +103,9 @@
             .tm_offer_manifest(cc$dir_raw)
         }
     }
-    if (!is.null(cc$datasets)) .tm_link_datasets(cc, type)
+    if (!is.null(used)) .tm_link_datasets(bd, type, used, ds_dir)
+    # Listed after creating, so a new dataset includes itself.
+    cc$datasets <- .tm_list_datasets(ds_dir)
     .tm_renv_hint(bd)
 
     if (isTRUE(assign_global)) {

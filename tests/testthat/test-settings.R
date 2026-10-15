@@ -35,8 +35,8 @@ test_that("the setup wizard saves the answers", {
     local_tm_settings(home_base = NULL)
     root <- local_root()
     dir.create(file.path(root, "Cloud"))
-    # root, home_base, grant, type, save
-    local_answers(c(root, "Cloud", "GRK1", "2", "y"))
+    # root, home_base, grant, datasets, type, save
+    local_answers(c(root, "Cloud", "GRK1", "", "2", "y"))
     utils::capture.output(toastmaker_setup())
     expect_equal(.tm_setting("home_base"), "Cloud")
     expect_equal(.tm_setting("grant"), "GRK1")
@@ -48,11 +48,22 @@ test_that("project_setup starts the wizard when home_base is unset", {
     local_tm_settings(home_base = NULL)
     root <- local_root()
     dir.create(file.path(root, "Cloud"))
-    # wizard: root, home_base, grant, type, save; then confirm folders
-    local_answers(c(root, "Cloud", "", "", "y", "y"))
+    # wizard: root, home_base, grant, datasets, type, save; then confirm folders
+    local_answers(c(root, "Cloud", "", "", "", "y", "y"))
     utils::capture.output(
         p <- project_setup("KO", root = root, assign_global = FALSE,
                            auto_cleanup = FALSE, confirm = TRUE)
     )
     expect_equal(p$bd, file.path(root, "Cloud", "Projects", "KO"))
+})
+
+test_that("the setup wizard asks where datasets go", {
+    local_tm_settings(home_base = NULL)
+    root <- local_root()
+    dir.create(file.path(root, "Cloud"))
+    ds <- file.path(root, "Data")
+    local_answers(c(root, "Cloud", "", ds, "1", "y"))
+    out <- utils::capture.output(toastmaker_setup())
+    expect_equal(.tm_setting("datasets"), ds)
+    expect_true(any(grepl(file.path(ds, "internal"), out, fixed = TRUE)))
 })

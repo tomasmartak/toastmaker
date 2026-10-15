@@ -22,9 +22,14 @@
 #'
 #' @param do.gc Run [gc()] after removal (default `TRUE`).
 #' @param add.to.cookiejar Names of objects to protect. When given, nothing
-#'   is removed; only `core_objects` is updated.
+#'   is removed; only `core_objects` is updated. `all` (or `"all"`) protects
+#'   every object currently in `env`; this is an error if an object named
+#'   `all` exists, since it would be ambiguous.
 #' @param consume.cookie Names of objects to stop protecting. When given,
-#'   nothing is removed; only `core_objects` is updated.
+#'   nothing is removed; only `core_objects` is updated. `all` (or `"all"`)
+#'   empties `core_objects` (`toast` objects stay protected by their
+#'   class); like `add.to.cookiejar = all`, an error if an object named
+#'   `all` exists.
 #' @param env Environment to clean (default: the global environment).
 #' @param notify Play a sound when done (requires the \pkg{beepr} package).
 #'
@@ -39,12 +44,23 @@
 #' crumber(consume.cookie = "scratch", env = env)  # ...and unprotect `scratch`
 #' crumber(env = env, do.gc = FALSE)               # removes `scratch`
 #' ls(env)
+#' assign("later", 3, envir = env)
+#' crumber(add.to.cookiejar = all, env = env)      # protect everything there now
+#' crumber(consume.cookie = all, env = env)        # ...and unprotect everything
 crumber <- function(do.gc = TRUE, add.to.cookiejar = NULL, consume.cookie = NULL,
                     env = globalenv(), notify = FALSE) {
     add <- .tm_names(substitute(add.to.cookiejar))
     drop <- .tm_names(substitute(consume.cookie))
     core <- get0("core_objects", envir = env, inherits = FALSE) %||% character(0L)
 
+    if ("all" %in% add) {
+        .tm_check_all("add.to.cookiejar", env)
+        add <- union(setdiff(add, "all"), setdiff(ls(envir = env), "core_objects"))
+    }
+    if ("all" %in% drop) {
+        .tm_check_all("consume.cookie", env)
+        drop <- union(setdiff(drop, "all"), core)
+    }
     if (length(add) > 0L || length(drop) > 0L) {
         core <- setdiff(union(core, add), drop)
         assign("core_objects", core, envir = env)
@@ -67,4 +83,15 @@ crumber <- function(do.gc = TRUE, add.to.cookiejar = NULL, consume.cookie = NULL
         }
     }
     invisible(surplus)
+}
+
+# `all` in add.to.cookiejar / consume.cookie means every object, which is
+# ambiguous when an object is actually called `all`.
+.tm_check_all <- function(arg, env) {
+    if (exists("all", envir = env, inherits = FALSE)) {
+        stop("crumber(", arg, " = all) is ambiguous: an object named 'all' ",
+             "exists, so it is unclear whether to use that object or every ",
+             "object. Rename `all` first. Nothing was changed.", call. = FALSE)
+    }
+    invisible(TRUE)
 }

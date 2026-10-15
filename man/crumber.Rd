@@ -16,10 +16,15 @@ crumber(
 \item{do.gc}{Run \code{\link[=gc]{gc()}} after removal (default \code{TRUE}).}
 
 \item{add.to.cookiejar}{Names of objects to protect. When given, nothing
-is removed; only \code{core_objects} is updated.}
+is removed; only \code{core_objects} is updated. \code{all} (or \code{"all"}) protects
+every object currently in \code{env}; this is an error if an object named
+\code{all} exists, since it would be ambiguous.}
 
 \item{consume.cookie}{Names of objects to stop protecting. When given,
-nothing is removed; only \code{core_objects} is updated.}
+nothing is removed; only \code{core_objects} is updated. \code{all} (or \code{"all"})
+empties \code{core_objects} (\code{toast} objects stay protected by their
+class); like \code{add.to.cookiejar = all}, an error if an object named
+\code{all} exists.}
 
 \item{env}{Environment to clean (default: the global environment).}
 
@@ -61,4 +66,7 @@ crumber(add.to.cookiejar = c(keep_me, scratch), env = env) # protect both
 crumber(consume.cookie = "scratch", env = env)  # ...and unprotect `scratch`
 crumber(env = env, do.gc = FALSE)               # removes `scratch`
 ls(env)
+assign("later", 3, envir = env)
+crumber(add.to.cookiejar = all, env = env)      # protect everything there now
+crumber(consume.cookie = all, env = env)        # ...and unprotect everything
 }

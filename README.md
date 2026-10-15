@@ -77,12 +77,16 @@ figure_setup("Fig2_growth", sources = c(toast$dir_analysis, toast$dir_img), wher
 
 ### Datasets
 
-Shared or public data goes in `Datasets/`; link it from a project:
+Shared data goes in a datasets folder with `public/` and `internal/` subfolders. It is `Datasets/` next to `Projects/` unless you choose another folder in `toastmaker_setup()` (or `toastmaker_settings(datasets = "...")`). Every `toast` lists all datasets; names like `scRNAseq@pozniak` are grouped before the `@`:
 
 ``` r
 dataset_setup("GEO_GSE12345")
-toast <- project_setup("Reanalysis", datasets = "GEO_GSE12345")
-toast$datasets$GEO_GSE12345
+dataset_setup("scRNAseq@pozniak")
+dataset_setup("2026-03-12_cohortA", source = "internal")
+toast <- project_setup("Reanalysis", datasets = "GEO_GSE12345") # records the link
+toast$datasets$public$GEO_GSE12345
+toast$datasets$public$scRNAseq@pozniak    # or ...$scRNAseq$pozniak; @ needs R >= 4.3
+toast$datasets$internal$`2026-03-12_cohortA`
 ```
 
 ### Raw data and package versions
@@ -101,6 +105,8 @@ project_record("Proj1") # write renv.lock (R and package versions used in script
 
 ``` r
 crumber(add.to.cookiejar = c(df, fit))   # protect
+crumber(add.to.cookiejar = all)          # protect everything in the workspace now
+crumber(consume.cookie = all)            # unprotect everything (toast objects stay)
 crumber()                                # clear the rest
 ```
 
