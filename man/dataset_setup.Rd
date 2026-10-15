@@ -7,6 +7,7 @@
 dataset_setup(
   name,
   source = c("public", "internal"),
+  datasets_dir = .tm_setting("datasets"),
   lab = .tm_setting("lab"),
   grant = .tm_setting("grant"),
   home_base = .tm_setting("home_base"),
@@ -18,12 +19,16 @@ dataset_setup(
 )
 }
 \arguments{
-\item{name}{Dataset name, e.g. an accession (\code{"GEO_GSE12345"}) or, for
-internal data, a date-first name (\code{"2026-03-12_scRNAseq-cohortA"}). If
-omitted, the dataset containing the working directory is used.}
+\item{name}{Dataset name, e.g. an accession (\code{"GEO_GSE12345"}), a
+\code{"<group>@<variant>"} name (\code{"scRNAseq@pozniak"}) or, for internal
+data, a date-first name (\code{"2026-03-12_scRNAseq-cohortA"}). If omitted,
+the dataset containing the working directory is used.}
 
 \item{source}{\code{"public"} (downloaded from elsewhere) or \code{"internal"}
 (generated in-house).}
+
+\item{datasets_dir}{Datasets folder. Default from settings; if unset,
+\verb{Datasets/} in the base folder.}
 
 \item{lab}{Lab folder, e.g. \code{"AC"}. Optional.}
 
@@ -49,24 +54,37 @@ keeps \code{toast} either way).}
 }
 \value{
 Invisibly, a \code{"toast"} object with \code{bd}, \code{dir_raw},
-\code{dir_processed} and \code{dir_scripts}, or \code{NULL} if you declined.
+\code{dir_processed}, \code{dir_scripts} and \code{datasets}, or \code{NULL} if you
+declined.
 }
 \description{
 Datasets that are public, large, or used by more than one project live in
-\verb{<root>/<home_base>/[<grant>/][<lab>/]Datasets/<source>/<name>/}, next to
-\verb{Projects/}, instead of inside a single project:
+a datasets folder, \verb{<datasets>/<source>/<name>/}, instead of inside a
+single project. The datasets folder is the \code{datasets} setting (asked by
+\code{\link[=toastmaker_setup]{toastmaker_setup()}}) or, if unset,
+\verb{<root>/<home_base>/[<grant>/][<lab>/]Datasets/}, next to \verb{Projects/}:
 }
 \details{
-\if{html}{\out{<div class="sourceCode">}}\preformatted{Datasets/public/GEO_GSE12345/
-|-- README.md     where the data came from and how to get it again
-|-- raw/          the data exactly as obtained (+ MANIFEST.md5)
-|-- processed/    tables derived from raw/
-`-- scripts/      download and processing code
+\if{html}{\out{<div class="sourceCode">}}\preformatted{Datasets/
+|-- public/                 downloaded from elsewhere
+|   |-- GEO_GSE12345/
+|   |   |-- README.md       where the data came from and how to get it again
+|   |   |-- raw/            the data exactly as obtained (+ MANIFEST.md5)
+|   |   |-- processed/      tables derived from raw/
+|   |   `-- scripts/        download and processing code
+|   `-- scRNAseq@pozniak/
+`-- internal/               generated in-house
 }\if{html}{\out{</div>}}
 
-A project uses a dataset with \code{project_setup(..., datasets = "GEO_GSE12345")},
-which returns its path in \verb{$datasets} and records the link in both
-folders' \code{.toastmaker} markers. Data generated for a single project
+Every object returned by \code{\link[=project_setup]{project_setup()}} lists all datasets in
+\verb{$datasets}, e.g. \code{toast$datasets$public$GEO_GSE12345}. A name of the
+form \code{"<group>@<variant>"} is nested by group, so \code{"scRNAseq@pozniak"} is
+reached as \code{toast$datasets$public$scRNAseq@pozniak} (or
+\code{...$scRNAseq$pozniak}). The \code{@} form needs R >= 4.3.0.
+
+To record that a project uses a dataset, pass
+\code{project_setup(..., datasets = "GEO_GSE12345")}; the link is written to
+both folders' \code{.toastmaker} markers. Data generated for a single project
 belongs in that project's \verb{raw/} instead.
 
 Once \verb{raw/} holds files, you are offered a checksum manifest (see
@@ -80,7 +98,7 @@ d <- dataset_setup("GEO_GSE12345", home_base = "heiBOX", root = tmp,
 p <- project_setup("Reanalysis", datasets = "GEO_GSE12345",
                    home_base = "heiBOX", root = tmp, confirm = FALSE,
                    auto_cleanup = FALSE, assign_global = FALSE)
-p$datasets$GEO_GSE12345
+p$datasets$public$GEO_GSE12345
 unlink(tmp, recursive = TRUE)
 }
 \seealso{

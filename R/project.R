@@ -13,7 +13,9 @@
 #'
 #' Papers, presentations and posters also get a `README.md` explaining what
 #' goes in each subfolder; add figure folders to them with [figure_setup()].
-#' Shared or public data lives in `Datasets/` (see [dataset_setup()]). Every
+#' Shared or public data lives in a datasets folder with `public/` and
+#' `internal/` subfolders (see [dataset_setup()]); every result lists all of
+#' them in `$datasets`, e.g. `toast$datasets$public$scRNAseq@pozniak`. Every
 #' folder gets a `.toastmaker` marker file at its root (see [project_root()]).
 #'
 #' Before creating anything new, the tree is printed with new folders marked,
@@ -45,9 +47,11 @@
 #'   (e.g. `"FlowJo"`, `"FC"`, `"cytotoxicity_assays"`), inserted before
 #'   `experiment_name` (projects only).
 #' @param datasets Names of datasets this folder uses, e.g. `"GEO_GSE12345"`
-#'   or `"public/GEO_GSE12345"` (see [dataset_setup()]). Their paths are
-#'   returned in `$datasets`, and the link is recorded in both folders'
-#'   `.toastmaker` markers.
+#'   or `"public/GEO_GSE12345"` (see [dataset_setup()]). The link is
+#'   recorded in both folders' `.toastmaker` markers. (All datasets are
+#'   listed in `$datasets` whether or not they are named here.)
+#' @param datasets_dir Folder holding the `public/` and `internal/` datasets.
+#'   Default from settings; if unset, `Datasets/` in the base folder.
 #' @param lab Lab folder, e.g. `"AC"`. Optional.
 #' @param grant Grant or grouping folder. Optional.
 #' @param home_base Base folder inside `root`, e.g. a synced cloud folder.
@@ -65,8 +69,10 @@
 #'
 #' @return Invisibly, a named list of class `"toast"` with `bd` (the
 #'   folder root), `dir_home` (the `<root>/<home_base>` folder, e.g.
-#'   `C:/Users/abc/Documents/heiBOX`), one `dir_*` element per subfolder and,
-#'   if requested, `datasets`; or `NULL` if you declined to create it. Its
+#'   `C:/Users/abc/Documents/heiBOX`), one `dir_*` element per subfolder and
+#'   `datasets`, a list with `public` and `internal` holding the path of every
+#'   dataset (see [dataset_setup()]); or `NULL` if you declined to create
+#'   it. Its
 #'   `type` attribute holds the layout.
 #' @seealso [toastmaker_setup()], [dataset_setup()], [figure_setup()],
 #'   [project_record()], [project_cleanup()], [project_snapshot()],
@@ -92,6 +98,7 @@ project_setup <- function(project,
                           raw_subdir      = NULL,
                           img_subdir      = NULL,
                           datasets        = NULL,
+                          datasets_dir    = .tm_setting("datasets"),
                           lab             = .tm_setting("lab"),
                           grant           = .tm_setting("grant"),
                           home_base       = .tm_setting("home_base"),
@@ -111,7 +118,7 @@ project_setup <- function(project,
               args = list(experiment_name = experiment_name,
                           analysis_subdir = analysis_subdir,
                           raw_subdir = raw_subdir, img_subdir = img_subdir),
-              datasets = datasets, lab = gl$lab, grant = gl$grant, home_base = home_base,
+              datasets = datasets, datasets_dir = datasets_dir, lab = gl$lab, grant = gl$grant, home_base = home_base,
               root = root, confirm = confirm, check_raw = check_raw,
               auto_cleanup = auto_cleanup, assign_global = assign_global,
               env = parent.frame())
@@ -121,9 +128,8 @@ project_setup <- function(project,
 print.toast <- function(x, ...) {
     cat("<toast ", attr(x, "type") %||% "project", ">\n", sep = "")
     for (nm in setdiff(names(x), "datasets")) cat(sprintf("  %-12s %s\n", nm, x[[nm]]))
-    for (nm in names(x$datasets)) {
-        cat(sprintf("  %-12s %s\n", paste0("datasets$", nm), x$datasets[[nm]]))
-    }
+    ds <- .tm_flatten_datasets(x$datasets)
+    for (nm in names(ds)) cat(sprintf("  %-12s %s\n", paste0("datasets$", nm), ds[[nm]]))
     invisible(x)
 }
 

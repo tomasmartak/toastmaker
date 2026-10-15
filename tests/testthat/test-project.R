@@ -27,7 +27,7 @@ test_that("paper, presentation and poster layouts", {
     paper <- setup_quiet("KO-screen", type = "paper", root = root)
     expect_equal(paper$bd, file.path(root, "heiBOX", "Papers", "KO-screen"))
     expect_setequal(names(paper), c("bd", "dir_home", "dir_manuscript", "dir_figures",
-                                    "dir_supplementary", "dir_scripts", "dir_submission"))
+                                    "dir_supplementary", "dir_scripts", "dir_submission", "datasets"))
     expect_true(file.exists(file.path(paper$bd, "README.md")))
 
     talk <- setup_quiet("2026-11-05_retreat", type = "presentation", root = root)

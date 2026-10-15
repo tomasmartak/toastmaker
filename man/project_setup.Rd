@@ -12,6 +12,7 @@ project_setup(
   raw_subdir = NULL,
   img_subdir = NULL,
   datasets = NULL,
+  datasets_dir = .tm_setting("datasets"),
   lab = .tm_setting("lab"),
   grant = .tm_setting("grant"),
   home_base = .tm_setting("home_base"),
@@ -40,9 +41,12 @@ e.g. \code{"2025-04-28_growth-countess"}; a warning is given otherwise.}
 \code{experiment_name} (projects only).}
 
 \item{datasets}{Names of datasets this folder uses, e.g. \code{"GEO_GSE12345"}
-or \code{"public/GEO_GSE12345"} (see \code{\link[=dataset_setup]{dataset_setup()}}). Their paths are
-returned in \verb{$datasets}, and the link is recorded in both folders'
-\code{.toastmaker} markers.}
+or \code{"public/GEO_GSE12345"} (see \code{\link[=dataset_setup]{dataset_setup()}}). The link is
+recorded in both folders' \code{.toastmaker} markers. (All datasets are
+listed in \verb{$datasets} whether or not they are named here.)}
+
+\item{datasets_dir}{Folder holding the \verb{public/} and \verb{internal/} datasets.
+Default from settings; if unset, \verb{Datasets/} in the base folder.}
 
 \item{lab}{Lab folder, e.g. \code{"AC"}. Optional.}
 
@@ -69,8 +73,10 @@ keeps \code{toast} either way).}
 \value{
 Invisibly, a named list of class \code{"toast"} with \code{bd} (the
 folder root), \code{dir_home} (the \verb{<root>/<home_base>} folder, e.g.
-\verb{C:/Users/abc/Documents/heiBOX}), one \verb{dir_*} element per subfolder and,
-if requested, \code{datasets}; or \code{NULL} if you declined to create it. Its
+\verb{C:/Users/abc/Documents/heiBOX}), one \verb{dir_*} element per subfolder and
+\code{datasets}, a list with \code{public} and \code{internal} holding the path of every
+dataset (see \code{\link[=dataset_setup]{dataset_setup()}}); or \code{NULL} if you declined to create
+it. Its
 \code{type} attribute holds the layout.
 }
 \description{
@@ -90,7 +96,9 @@ depends on \code{type}:
 
 Papers, presentations and posters also get a \code{README.md} explaining what
 goes in each subfolder; add figure folders to them with \code{\link[=figure_setup]{figure_setup()}}.
-Shared or public data lives in \verb{Datasets/} (see \code{\link[=dataset_setup]{dataset_setup()}}). Every
+Shared or public data lives in a datasets folder with \verb{public/} and
+\verb{internal/} subfolders (see \code{\link[=dataset_setup]{dataset_setup()}}); every result lists all of
+them in \verb{$datasets}, e.g. \code{toast$datasets$public$scRNAseq@pozniak}. Every
 folder gets a \code{.toastmaker} marker file at its root (see \code{\link[=project_root]{project_root()}}).
 
 Before creating anything new, the tree is printed with new folders marked,

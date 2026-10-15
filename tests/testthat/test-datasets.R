@@ -6,7 +6,7 @@ test_that("dataset_setup builds the dataset tree next to Projects", {
                            auto_cleanup = FALSE, assign_global = FALSE)
     )
     expect_equal(d$bd, file.path(root, "heiBOX", "Datasets", "public", "GEO_GSE1"))
-    expect_setequal(names(d), c("bd", "dir_home", "dir_raw", "dir_processed", "dir_scripts"))
+    expect_setequal(names(d), c("bd", "dir_home", "dir_raw", "dir_processed", "dir_scripts", "datasets"))
     expect_true(file.exists(file.path(d$bd, "README.md")))
     marker <- read.dcf(file.path(d$bd, ".toastmaker"))
     expect_equal(unname(marker[1, c("Type", "Source")]), c("dataset", "public"))
@@ -29,7 +29,7 @@ test_that("projects link to datasets in both directions", {
                            auto_cleanup = FALSE, assign_global = FALSE)
     )
     p <- setup_quiet("KO", datasets = "GEO_GSE1", root = root)
-    expect_equal(p$datasets$GEO_GSE1, d$bd)
+    expect_equal(p$datasets$public$GEO_GSE1, d$bd)
     expect_false("datasets" %in% names(.tm_dirs(p)))
 
     pm <- read.dcf(file.path(p$bd, ".toastmaker"))
@@ -55,7 +55,7 @@ test_that("ambiguous dataset names must say public/ or internal/", {
     }
     expect_error(setup_quiet("KO", datasets = "X", root = root), "exists in both")
     p <- setup_quiet("KO", datasets = "internal/X", root = root)
-    expect_match(p$datasets$X, "internal/X$")
+    expect_match(p$datasets$internal$X, "internal/X$")
 })
 
 test_that("dataset raw/ gets a manifest offer once it holds data", {
@@ -68,4 +68,58 @@ test_that("dataset raw/ gets a manifest offer once it holds data", {
     local_answers("y")
     utils::capture.output(do.call(dataset_setup, args))
     expect_true(file.exists(file.path(d$dir_raw, "MANIFEST.md5")))
+})
+
+test_that("every toast lists all datasets by source, nesting <group>@<variant>", {
+    local_tm_settings()
+    root <- local_root()
+    p <- setup_quiet("KO", root = root)
+    expect_named(p$datasets, c("public", "internal"))
+    expect_length(p$datasets$public, 0L)
+
+    mk <- function(nm, s = "public") utils::capture.output(
+        dataset_setup(nm, source = s, root = root, confirm = FALSE,
+                      auto_cleanup = FALSE, assign_global = FALSE))
+    mk("GEO_GSE1"); mk("scRNAseq@pozniak"); mk("scRNAseq@smith"); mk("cohortA", "internal")
+
+    toast <- setup_quiet("KO", root = root)
+    ds <- file.path(root, "heiBOX", "Datasets")
+    expect_equal(toast$datasets$public$GEO_GSE1, file.path(ds, "public", "GEO_GSE1"))
+    expect_equal(toast$datasets$public$scRNAseq@pozniak,
+                 file.path(ds, "public", "scRNAseq@pozniak"))
+    expect_equal(toast$datasets$public$scRNAseq$smith, file.path(ds, "public", "scRNAseq@smith"))
+    expect_equal(toast$datasets$internal$cohortA, file.path(ds, "internal", "cohortA"))
+    expect_error(toast$datasets$public$scRNAseq@nobody, "No dataset 'nobody'")
+
+    # other layouts get the list too, and print shows each path
+    paper <- setup_quiet("P", type = "paper", root = root)
+    expect_equal(paper$datasets$public$GEO_GSE1, toast$datasets$public$GEO_GSE1)
+    out <- utils::capture.output(print(toast))
+    expect_true(any(grepl("datasets$public$scRNAseq$pozniak", out, fixed = TRUE)))
+
+    # linking by a @ name works and is recorded
+    setup_quiet("KO", datasets = "scRNAseq@pozniak", root = root)
+    pm <- read.dcf(file.path(toast$bd, ".toastmaker"))
+    expect_equal(unname(pm[1, "Datasets"]), "public/scRNAseq@pozniak")
+})
+
+test_that("the datasets folder can be set anywhere", {
+    local_tm_settings()
+    root <- local_root()
+    elsewhere <- file.path(root, "shared", "data")
+    withr::local_options(toastmaker.datasets = elsewhere)
+    utils::capture.output(
+        d <- dataset_setup("GEO_GSE1", root = root, confirm = FALSE,
+                           auto_cleanup = FALSE, assign_global = FALSE)
+    )
+    expect_equal(d$bd, file.path(elsewhere, "public", "GEO_GSE1"))
+    p <- setup_quiet("KO", datasets = "GEO_GSE1", root = root)
+    expect_equal(p$datasets$public$GEO_GSE1, d$bd)
+    expect_equal(unname(read.dcf(file.path(d$bd, ".toastmaker"))[1, "UsedBy"]), "Projects/KO")
+
+    # found again from inside the dataset folder
+    withr::local_dir(d$dir_raw)
+    utils::capture.output(d2 <- dataset_setup(confirm = FALSE, auto_cleanup = FALSE))
+    expect_equal(d2$bd, d$bd)
+    expect_equal(d2$datasets$public$GEO_GSE1, d$bd)
 })

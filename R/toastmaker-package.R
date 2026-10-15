@@ -8,8 +8,9 @@
 #' * [project_setup()] creates a project, paper, presentation or poster
 #'   folder under `<root>/<home_base>/[<grant>/][<lab>/]`, in `Projects/`,
 #'   `Papers/`, `Presentations/` or `Posters/`.
-#' * [dataset_setup()] creates a shared or public dataset folder in
-#'   `Datasets/` that projects can use.
+#' * [dataset_setup()] creates a shared dataset folder in `public/` or
+#'   `internal/` of the datasets folder; every [project_setup()] result lists
+#'   them all in `$datasets`.
 #' * [figure_setup()] adds a figure folder to a paper, presentation or
 #'   poster, linked to the projects it came from.
 #' * [project_record()] records package versions in `renv.lock`.

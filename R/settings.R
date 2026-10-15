@@ -20,6 +20,10 @@
 #'   is set.
 #' * `grant`: grant or grouping folder. Unset by default, in which case it is
 #'   skipped in the path.
+#' * `datasets`: folder holding shared datasets in `public/` and `internal/`
+#'   subfolders (see [dataset_setup()]). Unset by default, in which case
+#'   `Datasets/` in the base folder (`<root>/<home_base>/[<grant>/][<lab>/]`)
+#'   is used.
 #' * `lab`: default lab folder. Unset by default (skipped). Not asked by
 #'   [toastmaker_setup()]; set it here if you want one.
 #' * `type`: default folder layout for [project_setup()]: `"project"`
@@ -80,7 +84,7 @@ toastmaker_settings <- function(..., reset = FALSE) {
 #' Guided setup of toastmaker defaults
 #'
 #' Walks you through the settings used by [project_setup()] (root folder,
-#' base folder, grant and default layout) and saves them. Press Enter to
+#' base folder, grant, datasets folder and default layout) and saves them. Press Enter to
 #' keep the value shown in brackets, or type `-` to clear an optional value.
 #' Runs automatically the first time [project_setup()] is used interactively
 #' without a `home_base`.
@@ -114,6 +118,11 @@ toastmaker_setup <- function() {
     }
 
     grant <- .tm_prompt("Grant folder (Enter with no value = none)", .tm_setting("grant"))
+    base <- .tm_path(path.expand(root), home_base, grant)
+
+    cat("Datasets folder: where shared datasets are saved, in public/ and internal/ subfolders.\n",
+        "  Enter with no value = ", file.path(base, "Datasets"), "\n", sep = "")
+    datasets <- .tm_prompt("Datasets folder (full path)", .tm_setting("datasets"))
 
     cat("Default folder layout:\n")
     for (i in seq_along(.tm_types)) {
@@ -128,12 +137,14 @@ toastmaker_setup <- function() {
         cat("  Please choose one of: ", paste(.tm_types, collapse = ", "), "\n", sep = "")
     }
 
-    cfg <- list(root = root, home_base = home_base, grant = grant, type = type)
-    base <- .tm_path(path.expand(root), home_base, grant)
+    cfg <- list(root = root, home_base = home_base, grant = grant,
+                datasets = datasets, type = type)
     cat("\nSummary\n")
     for (k in names(cfg)) cat(sprintf("  %-10s %s\n", k, cfg[[k]] %||% "<none>"))
     cat("New folders will be created under:\n")
     for (t in .tm_types) cat("  ", file.path(base, .tm_layouts[[t]]$top), "/\n", sep = "")
+    ds_dir <- .tm_datasets_dir(datasets, base)
+    for (s in .tm_sources) cat("  ", file.path(ds_dir, s), "/\n", sep = "")
 
     if (!.tm_yes("\nSave these settings?")) {
         cat("Nothing saved.\n")
@@ -146,7 +157,7 @@ toastmaker_setup <- function() {
 
 # Internal ---------------------------------------------------------------------
 
-.tm_keys <- c("root", "home_base", "grant", "lab", "type")
+.tm_keys <- c("root", "home_base", "grant", "datasets", "lab", "type")
 
 .tm_builtin_default <- function(key) {
     switch(key, root = .tm_default_root(), type = "project", NULL)
